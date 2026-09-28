@@ -129,28 +129,90 @@ def _slug_candidates(name: str) -> list[str]:
     return list(dict.fromkeys(c for c in cands if c))
 
 
-def _workday_sites_from_simplify(client) -> dict[str, str]:
-    """Map normalized company name -> most common Workday site URL in the SimplifyJobs data."""
-    from collections import Counter, defaultdict
+# Workday site names that aren't the public careers site.
+_WORKDAY_SKIP_RE = re.compile(r"restricted|contractor|confidential|internal|subsidiary", re.I)
+# Site names worth suggesting alongside the main one.
+_WORKDAY_EARLY_RE = re.compile(r"new.?grad|early|university|campus|graduate|student|futureforce", re.I)
+_HOST_HINTS = [
+    ("myworkdayjobs.com", "Workday, but its API didn't respond"),
+    ("oraclecloud.com", "Oracle Recruiting Cloud"),
+    ("icims.com", "iCIMS"),
+    ("smartrecruiters.com", "SmartRecruiters"),
+    ("avature.net", "Avature"),
+    ("bamboohr.com", "BambooHR"),
+    ("workable.com", "Workable"),
+    ("applytojob.com", "JazzHR"),
+    ("successfactors", "SAP SuccessFactors"),
+    ("taleo.net", "Taleo"),
+]
 
-    from jobsearch.normalize import normalize_company
-    from jobsearch.sources import github_lists, workday
-    from jobsearch.sources.base import get_json
 
-    counts: dict[str, Counter] = defaultdict(Counter)
-    for j in get_json(client, github_lists.SIMPLIFY_URL):
-        try:
-            base, _, site = workday.parse_site_url(j.get("url") or "")
-        except ValueError:
-            continue
-        counts[normalize_company(j.get("company_name") or "")][f"{base}/{site}"] += 1
-    return {name: c.most_common(1)[0][0] for name, c in counts.items()}
+class SimplifyIndex:
+    """Company -> career hosts / Workday sites, built from the SimplifyJobs apply URLs."""
+
+    def __init__(self, entries: list[dict]):
+        from collections import Counter, defaultdict
+
+        from jobsearch.normalize import normalize_company
+        from jobsearch.sources import workday
+
+        self._norm = normalize_company
+        self.sites: dict[str, Counter] = defaultdict(Counter)
+        self.hosts: dict[str, Counter] = defaultdict(Counter)
+        for j in entries:
+            key = normalize_company(j.get("company_name") or "")
+            url = j.get("url") or ""
+            if not key or not url.startswith("http"):
+                continue
+            self.hosts[key][url.split("/")[2]] += 1
+            try:
+                base, _, site = workday.parse_site_url(url)
+            except ValueError:
+                continue
+            self.sites[key][f"{base}/{site}"] += 1
+
+    @classmethod
+    def fetch(cls, client) -> "SimplifyIndex":
+        from jobsearch.sources import github_lists
+        from jobsearch.sources.base import get_json
+
+        return cls(get_json(client, github_lists.SIMPLIFY_URL))
+
+    def _key(self, name: str) -> str | None:
+        """Exact normalized match, else the biggest company whose name starts with this one
+        (or vice versa), e.g. 'Auto-Owners' -> 'Auto-Owners Insurance'."""
+        n = self._norm(name)
+        if n in self.hosts:
+            return n
+        if len(n) < 4:
+            return None
+        cands = [k for k in self.hosts if len(k) >= 4 and (k.startswith(n) or n.startswith(k))]
+        return max(cands, key=lambda k: sum(self.hosts[k].values()), default=None)
+
+    def workday_sites(self, name: str) -> list[str]:
+        """Main public site first, then any early-career sites."""
+        key = self._key(name)
+        if not key:
+            return []
+        ranked = [u for u, _ in self.sites[key].most_common() if not _WORKDAY_SKIP_RE.search(u)]
+        # Case variants of the same site ("EXTERNAL_CAREERS" / "external_careers") collapse.
+        ranked = list({u.lower(): u for u in reversed(ranked)}.values())[::-1]
+        if not ranked:
+            return []
+        return [ranked[0]] + [u for u in ranked[1:] if _WORKDAY_EARLY_RE.search(u)]
+
+    def host_hint(self, name: str) -> str:
+        key = self._key(name)
+        if not key:
+            return "not in SimplifyJobs data"
+        host = self.hosts[key].most_common(1)[0][0]
+        system = next((label for frag, label in _HOST_HINTS if frag in host), "custom site")
+        return f"{system} ({host})"
 
 
 def cmd_find_boards(args, settings) -> int:
     """Probe Greenhouse/Lever/Ashby for each company name, fall back to Workday sites
     seen in the SimplifyJobs data, and print companies.yaml entries."""
-    from jobsearch.normalize import normalize_company
     from jobsearch.sources.base import make_client
 
     names = args.names
@@ -166,7 +228,7 @@ def cmd_find_boards(args, settings) -> int:
     print("# Paste the hits into companies.yaml (verify each name/token first).")
     misses = []
     with make_client() as client:
-        workday_sites = _workday_sites_from_simplify(client)
+        index = SimplifyIndex.fetch(client)
         for name in names:
             if name.lower() in existing:
                 continue
@@ -179,18 +241,24 @@ def cmd_find_boards(args, settings) -> int:
                         break
                 if hit:
                     break
-            wd_url = workday_sites.get(normalize_company(name))
             if hit:
                 print(f"  - {{name: {name!r}, ats: {hit[0]}, token: {hit[1]}, enabled: true}}  # {hit[2]} jobs")
-            elif wd_url and (n := _probe_workday(client, wd_url)) is not None:
-                print(f"  - {{name: {name!r}, ats: workday, url: {wd_url!r}, enabled: true}}  # {n} jobs")
-            else:
-                misses.append(name)
+                continue
+            found = False
+            for url in index.workday_sites(name):
+                n = _probe_workday(client, url)
+                if n is not None:
+                    found = True
+                    print(f"  - {{name: {name!r}, ats: workday, url: {url!r}, enabled: true}}  # {n} jobs")
+            if not found:
+                misses.append((name, index.host_hint(name)))
     if misses:
-        print("\n# Not found automatically. For Workday, copy the careers page URL")
-        print("# (https://<co>.wdN.myworkdayjobs.com/<Site>) into an `ats: workday` entry:")
-        for m in misses:
-            print(f"#   {m}")
+        print("\n# Not found automatically (careers system in parentheses, from SimplifyJobs links).")
+        print("# For Workday, copy the careers URL (https://<co>.wdN.myworkdayjobs.com/<Site>) into an")
+        print("# `ats: workday` entry. Other systems aren't supported yet; SimplifyJobs still covers them.")
+        width = max(len(m) for m, _ in misses)
+        for m, hint in misses:
+            print(f"#   {m:{width}}  {hint}")
     return 0
 
 

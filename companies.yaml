@@ -22,8 +22,16 @@ companies:
   - {name: Magna International, ats: workday, url: "https://magna.wd3.myworkdayjobs.com/Magna", enabled: true}
   - {name: BorgWarner, ats: workday, url: "https://borgwarner.wd5.myworkdayjobs.com/BorgWarner_Careers", enabled: true}
   - {name: Rockwell Automation, ats: workday, url: "https://rockwellautomation.wd1.myworkdayjobs.com/External_Rockwell_Automation", enabled: true}
+  - {name: Auto-Owners Insurance, ats: workday, url: "https://aoins.wd5.myworkdayjobs.com/AutoOwners", enabled: true}
+  - {name: Acrisure, ats: workday, url: "https://acrisure.wd1.myworkdayjobs.com/Acrisure", enabled: true}
+  - {name: Fifth Third Bank, ats: workday, url: "https://fifththird.wd5.myworkdayjobs.com/53careers", enabled: true}
+  - {name: CaseGuard, ats: greenhouse, token: caseguard, enabled: true}
   # Not on a supported system yet (they still arrive via the SimplifyJobs feed when listed there):
-  #   Ford (Oracle Recruiting Cloud), RoviSys (custom site), Domino's (SmartRecruiters)
+  #   Oracle Recruiting Cloud: Ford, JPMorgan Chase, Honeywell, Goldman Sachs (partly)
+  #   iCIMS: Charles Schwab, Urban Science      SmartRecruiters: Domino's, Bosch
+  #   Avature: IBM, Siemens                     Workday, API refuses: Amerisure
+  #   Custom sites: Google, Apple, Deloitte, Garmin, State Farm, Capgemini, Lutron, RoviSys
+  # Parker: the Ashby board "parker" is probably a different company; add Parker Hannifin by URL if intended.
 
   # Fintech / AI / dev tools
   - {name: Stripe, ats: greenhouse, token: stripe, enabled: true}
@@ -33,6 +41,11 @@ companies:
   - {name: Robinhood, ats: greenhouse, token: robinhood, enabled: true}
   - {name: Coinbase, ats: greenhouse, token: coinbase, enabled: true}
   - {name: Palantir, ats: lever, token: palantir, enabled: true}
+  - {name: Vanguard, ats: workday, url: "https://vanguard.wd5.myworkdayjobs.com/vanguard_external", enabled: true}
+  - {name: Akuna Capital, ats: greenhouse, token: akunacapital, enabled: true}
+  - {name: Human Interest, ats: greenhouse, token: humaninterest, enabled: true}
+  - {name: Perpay, ats: greenhouse, token: perpay, enabled: true}
+  - {name: Charta Health, ats: ashby, token: chartahealth, enabled: true}
   - {name: Capital One, ats: workday, url: "https://capitalone.wd12.myworkdayjobs.com/Capital_One", enabled: true}
   - {name: Scale AI, ats: greenhouse, token: scaleai, enabled: true}
   - {name: Cohere, ats: ashby, token: cohere, enabled: true}
@@ -41,9 +54,18 @@ companies:
   - {name: Datadog, ats: greenhouse, token: datadog, enabled: true}
   - {name: Cloudflare, ats: greenhouse, token: cloudflare, enabled: true}
   - {name: Vercel, ats: greenhouse, token: vercel, enabled: true}
+  - {name: Boeing, ats: workday, url: "https://boeing.wd1.myworkdayjobs.com/EXTERNAL_CAREERS", enabled: true}
+  - {name: Leidos, ats: workday, url: "https://leidos.wd5.myworkdayjobs.com/External", enabled: true}
+  - {name: CACI, ats: workday, url: "https://caci.wd1.myworkdayjobs.com/external", enabled: true}
+  - {name: ReliaQuest, ats: workday, url: "https://reliaquest.wd5.myworkdayjobs.com/ReliaQuest_Careers", enabled: true}
+  - {name: AST SpaceMobile, ats: greenhouse, token: astspacemobile, enabled: true}
+  - {name: Barry-Wehmiller, ats: workday, url: "https://barrywehmiller.wd1.myworkdayjobs.com/BWCareers", enabled: true}
   - {name: Anduril, ats: greenhouse, token: andurilindustries, enabled: true}
 
   # Consumer / platforms
+  - {name: Salesforce, ats: workday, url: "https://salesforce.wd12.myworkdayjobs.com/External_Career_Site", enabled: true}
+  - {name: Salesforce, ats: workday, url: "https://salesforce.wd12.myworkdayjobs.com/Futureforce_NewGradRoles", enabled: true}
+  - {name: Target, ats: workday, url: "https://target.wd5.myworkdayjobs.com/targetcareers", enabled: true}
   - {name: Figma, ats: greenhouse, token: figma, enabled: true}
   - {name: Notion, ats: ashby, token: notion, enabled: true}
   - {name: Asana, ats: greenhouse, token: asana, enabled: true}
