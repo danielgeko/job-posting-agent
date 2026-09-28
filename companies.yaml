@@ -1,0 +1,53 @@
+# Target companies polled directly via their ATS public API (once per run each).
+# ats: greenhouse | lever | ashby | workday (workday has no public API; keep enabled: false)
+# token: the board slug from the careers URL, e.g. boards.greenhouse.io/<token>
+#
+# Add more with:  python -m jobsearch find-boards              (probes every company in your tracker)
+#                 python -m jobsearch find-boards "Company A" "Company B"
+# Verify with:    python -m jobsearch check-sources
+#
+# Companies not listed here still show up via the SimplifyJobs New-Grad-Positions feed.
+
+companies:
+  # Michigan / Midwest
+  - {name: May Mobility, ats: greenhouse, token: maymobility, enabled: true}
+  - {name: Censys, ats: greenhouse, token: censys, enabled: true}
+  - {name: StockX, ats: greenhouse, token: stockx, enabled: true}
+  - {name: Rovisys, ats: workday, token: "", enabled: false}
+  - {name: Rocket Companies, ats: workday, token: "", enabled: false}
+  - {name: Ford, ats: workday, token: "", enabled: false}
+  - {name: General Motors, ats: workday, token: "", enabled: false}
+
+  # Fintech / AI / dev tools
+  - {name: Stripe, ats: greenhouse, token: stripe, enabled: true}
+  - {name: Ramp, ats: ashby, token: ramp, enabled: true}
+  - {name: Plaid, ats: ashby, token: plaid, enabled: true}
+  - {name: Brex, ats: greenhouse, token: brex, enabled: true}
+  - {name: Robinhood, ats: greenhouse, token: robinhood, enabled: true}
+  - {name: Coinbase, ats: greenhouse, token: coinbase, enabled: true}
+  - {name: Palantir, ats: lever, token: palantir, enabled: true}
+  - {name: Scale AI, ats: greenhouse, token: scaleai, enabled: true}
+  - {name: Cohere, ats: ashby, token: cohere, enabled: true}
+  - {name: Sierra, ats: ashby, token: sierra, enabled: true}
+  - {name: Databricks, ats: greenhouse, token: databricks, enabled: true}
+  - {name: Datadog, ats: greenhouse, token: datadog, enabled: true}
+  - {name: Cloudflare, ats: greenhouse, token: cloudflare, enabled: true}
+  - {name: Vercel, ats: greenhouse, token: vercel, enabled: true}
+  - {name: Anduril, ats: greenhouse, token: andurilindustries, enabled: true}
+
+  # Consumer / platforms
+  - {name: Figma, ats: greenhouse, token: figma, enabled: true}
+  - {name: Notion, ats: ashby, token: notion, enabled: true}
+  - {name: Asana, ats: greenhouse, token: asana, enabled: true}
+  - {name: Duolingo, ats: greenhouse, token: duolingo, enabled: true}
+  - {name: Discord, ats: greenhouse, token: discord, enabled: true}
+  - {name: Reddit, ats: greenhouse, token: reddit, enabled: true}
+  - {name: Pinterest, ats: greenhouse, token: pinterest, enabled: true}
+  - {name: Airbnb, ats: greenhouse, token: airbnb, enabled: true}
+  - {name: Lyft, ats: greenhouse, token: lyft, enabled: true}
+  - {name: Instacart, ats: greenhouse, token: instacart, enabled: true}
+  - {name: DoorDash, ats: greenhouse, token: doordashusa, enabled: true}
+  - {name: Samsara, ats: greenhouse, token: samsara, enabled: true}
+  - {name: Verkada, ats: greenhouse, token: verkada, enabled: true}
+  - {name: Epic Games, ats: greenhouse, token: epicgames, enabled: true}
+  - {name: Jane Street, ats: greenhouse, token: janestreet, enabled: true}

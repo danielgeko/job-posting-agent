@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Daily job search run at 8:00 local time. If the Mac is asleep at 8:00, launchd runs it on wake.
+  Install:   cp scripts/com.jobsearch.daily.plist ~/Library/LaunchAgents/
+             launchctl load ~/Library/LaunchAgents/com.jobsearch.daily.plist
+  Run now:   launchctl start com.jobsearch.daily
+  Uninstall: launchctl unload ~/Library/LaunchAgents/com.jobsearch.daily.plist
+  If you move the project, update the paths below.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.jobsearch.daily</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/danielgekonde/Developer/CS Projects/job-posting-agent/.venv/bin/python</string>
+        <string>-m</string>
+        <string>jobsearch</string>
+        <string>run</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/danielgekonde/Developer/CS Projects/job-posting-agent</string>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>8</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>/Users/danielgekonde/Developer/CS Projects/job-posting-agent/logs/launchd.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/danielgekonde/Developer/CS Projects/job-posting-agent/logs/launchd.err.log</string>
+</dict>
+</plist>

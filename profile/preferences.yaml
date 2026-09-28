@@ -1,0 +1,61 @@
+# Search preferences. Used by the deterministic filters (filters.py) and the scoring prompt.
+# Derived from the tracker — confirm/adjust.
+
+graduation: December 2026
+start_date: early 2027
+seniority: entry level / new grad only
+
+target_titles:
+  - Software Engineer / Developer (entry level, I, new grad, associate)
+  - Application Developer
+  - Forward Deployed Engineer
+  - Rotational technology programs
+  - Embedded / systems software
+  - Software Quality Engineer
+
+locations:
+  preferred: [Michigan]
+  open_to_relocation: true
+  # States already applied to — treat as acceptable.
+  acceptable: [IL, NY, MA, TX, NC, VA, CA, OH]
+  us_only: true   # drop postings whose every location is clearly outside the US
+
+salary:
+  hard_filter: false
+  floor: null
+
+filters:
+  # Case-insensitive regexes. A title matching any of these is dropped.
+  exclude_title_patterns:
+    - '\b(senior|sr\.?|staff|principal|lead|leader|manager|director|head of|vp|vice president|architect|distinguished|fellow)\b'
+    - '\b(ii|iii|iv|v)\b'                  # "Software Engineer II" (level 1 / I is kept)
+    - '\b[2-5]\s*$'                        # "Software Engineer 2"
+    - '\b(engineer|developer)\s+[2-5]\b'     # "Software Engineer 2 - Payments"
+    - '\blevel\s*[2-5]\b'
+    - '\b(intern|internship|co-?op|summer|apprentice)\b'
+    - '\b(phd|postdoc|post-doctoral)\b'
+
+  # A title must match at least one of these to count as a software role.
+  include_title_patterns:
+    - '\bsoftware\b'
+    - '\bdevelop(er|ment engineer)\b'
+    - '\b(sde|swe)\b'
+    - '\bprogrammer\b'
+    - '\bforward[- ]deployed\b'
+    - '\b(embedded|firmware)\b'
+    - '\b(back[- ]?end|front[- ]?end|full[- ]?stack)\b'
+    - '\b(mobile|ios|android)\s+engineer\b'
+    - '\b(platform|infrastructure|systems|cloud|devops|reliability|site reliability)\s+engineer\b'
+    - '\b(ml|machine learning|ai|applied ai)\s+engineer\b'
+    - '\b(quality|qa|test|automation)\s+engineer\b'
+    - '\bapplication(s)?\s+(engineer|developer)\b'
+    - '\b(technology|technical|engineering|software)\b.*\b(program|rotational|development program|analyst program)\b'
+    - '\bnew grad\b'
+    - '\b(entry[- ]level|associate)\b.*\bengineer\b'
+    - '\bengineer\s*(i|1)\s*$'
+
+  # Drop if the smallest "N years of experience" requirement in the description is >= this.
+  max_years_experience: 2   # i.e. drop "3+ years" and above
+
+  # SimplifyJobs categories to pull from the community feed.
+  simplify_categories: [Software, Software Engineering, AI/ML/Data]
