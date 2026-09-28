@@ -21,6 +21,7 @@ def test_normalize_url():
 def test_parse_salary_text():
     assert parse_salary_text("The range is $95,000 - $120,000 per year.") == (95000, 120000)
     assert parse_salary_text("Pay: $110K–$140K") == (110000, 140000)
+    assert parse_salary_text("NYC $156,750.00-$215,000.00; Seattle") == (156750, 215000)
     lo, hi = parse_salary_text("$40/hour")
     assert lo == 40 * 2080
     assert parse_salary_text("We raised $50 million") == (None, None)

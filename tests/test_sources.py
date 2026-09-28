@@ -98,3 +98,28 @@ def test_workday_fetch_filters_titles_before_detail_calls(load_fixture, monkeypa
     assert p.locations[0] == "Mayfield Heights, Ohio, United States" and len(p.locations) == 2
     assert p.description and "<" not in p.description
     assert p.url.startswith("https://rockwellautomation.wd1.myworkdayjobs.com/")
+
+
+def test_oracle_parse_detail(load_fixture):
+    from jobsearch.sources import oracle
+
+    assert oracle.parse_site_url(
+        "https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/job/1"
+    ) == ("jpmc.fa.oraclecloud.com", "CX_1001")
+    item = load_fixture("oracle_detail.json")["items"][0]
+    p = oracle.parse_detail(item, "JPMorgan Chase", "jpmc.fa.oraclecloud.com", "CX_1001")
+    assert p.source == "oracle" and p.external_id == f"jpmc:{item['Id']}"
+    assert p.url == f"https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/job/{item['Id']}"
+    assert p.locations[0] == "San Francisco, CA, United States" and "Seattle, WA, United States" in p.locations
+    assert (p.salary_min, p.salary_max) == (156750, 215000)  # from the "Base Pay/Salary" flex field
+    assert p.posted_at is not None and p.description and "<" not in p.description
+
+
+def test_smartrecruiters_parse_detail(load_fixture):
+    from jobsearch.sources import smartrecruiters
+
+    d = load_fixture("smartrecruiters_detail.json")
+    p = smartrecruiters.parse_detail(d, "ServiceNow", "ServiceNow")
+    assert p.source == "smartrecruiters" and p.external_id == f"ServiceNow:{d['id']}"
+    assert p.url.startswith("https://jobs.smartrecruiters.com/ServiceNow/")
+    assert p.locations and p.description and p.posted_at is not None

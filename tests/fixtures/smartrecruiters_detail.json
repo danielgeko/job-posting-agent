@@ -1,0 +1,139 @@
+{
+ "id": "744000152033408",
+ "name": "Assoc Machine Learning Engineer",
+ "uuid": "0d8c9ef5-da41-4787-b1ee-635afd1d4ac0",
+ "jobId": "4cd5acd9-f126-44c8-a443-68bffaed5f0c",
+ "jobAdId": "b4ce757c-c74a-4044-8c27-ccc3bd67dbbf",
+ "defaultJobAd": true,
+ "refNumber": "JB0061546",
+ "company": {
+  "name": "ServiceNow",
+  "identifier": "ServiceNow"
+ },
+ "location": {
+  "city": "Hyderabad",
+  "country": "in",
+  "address": "Salarpuria Sattva Knowledge City Knowledge City, Unit II, 17 to 10 Floor Survey No. 83/1, Serilingampally Mandal",
+  "postalCode": "500081",
+  "remote": false,
+  "hybrid": false,
+  "fullLocation": "Hyderabad, , India"
+ },
+ "customField": [
+  {
+   "fieldId": "60345fa28b4ba8595bef1863",
+   "fieldLabel": "Recruiting Team",
+   "valueId": "early-in-career",
+   "valueLabel": "Global Emerging Talent"
+  },
+  {
+   "fieldId": "60345e1a0b24a127cbdfa148",
+   "fieldLabel": "Employee Type",
+   "valueId": "0082f6cbe6154da19322cbab1f6aa5af",
+   "valueLabel": "Regular"
+  },
+  {
+   "fieldId": "5f63a78f1dae5c5c4e54ba2b",
+   "fieldLabel": "Department",
+   "valueId": "2294021",
+   "valueLabel": "Early In Career"
+  },
+  {
+   "fieldId": "COUNTRY",
+   "fieldLabel": "Country/Region",
+   "valueId": "in",
+   "valueLabel": "India"
+  },
+  {
+   "fieldId": "5f63a78f1dae5c5c4e54ba2a",
+   "fieldLabel": "Brands",
+   "valueId": "default",
+   "valueLabel": "ServiceNow"
+  },
+  {
+   "fieldId": "60345d5c5165a31b17288279",
+   "fieldLabel": "Region",
+   "valueId": "858884996eea4a49baa6231279f39054",
+   "valueLabel": "APAC - Asia Pacific"
+  },
+  {
+   "fieldId": "603462175165a31b1728827d",
+   "fieldLabel": "Cost Center",
+   "valueId": "CC6315",
+   "valueLabel": "6315 AI Search & Workflows"
+  },
+  {
+   "fieldId": "6034601b43915a29a4b3389b",
+   "fieldLabel": "Job Location",
+   "valueId": "L_HYD002",
+   "valueLabel": "Knowledge City, Unit II, 17 to 10 Floor, Survey No. 83/1, Serilingampally Mandal, Hyderabad- 500081, Telangana, India(L_HYD002)"
+  },
+  {
+   "fieldId": "618ed92b8f5e5f110e5bfb95",
+   "fieldLabel": "Work Persona",
+   "valueId": "bf7551c6-9b06-4e7c-8217-3baf43edd060",
+   "valueLabel": "Flexible"
+  },
+  {
+   "fieldId": "690cc0e8c682c3dbadaa7d73",
+   "fieldLabel": "Job Posting Type",
+   "valueId": "early-career",
+   "valueLabel": "Early Career"
+  }
+ ],
+ "releasedDate": "2026-09-27T18:45:46.096Z",
+ "creator": {
+  "name": "",
+  "avatarUrl": ""
+ },
+ "postingUrl": "https://jobs.smartrecruiters.com/ServiceNow/744000152033408-assoc-machine-learning-engineer",
+ "applyUrl": "https://jobs.smartrecruiters.com/ServiceNow/744000152033408-assoc-machine-learning-engineer?oga=true",
+ "referralUrl": "https://jobs.smartrecruiters.com/external-referrals/company/ServiceNow/publication/0d8c9ef5-da41-4787-b1ee-635afd1d4ac0?dcr_ci=ServiceNow",
+ "jobAd": {
+  "sections": {
+   "companyDescription": {
+    "title": "Company Description",
+    "text": "<p>It all started in sunny San Diego, California in 2004 when a visionary engineer, Fred Luddy, saw the potential to transform how we work. Fast forward to today \u2014 ServiceNow stands as a global market leader, bringing innovative AI-enhanced technology to over 8,100 customers, including 85% of the Fortune 500\u00ae. Our intelligent cloud-based platform seamlessly connects people, systems, and processes to empower organizations to find smarter, faster, and better ways to work. But this is just the beginning of our journey. Join us as we pursue our purpose to make the world work better for everyone.</p>"
+   },
+   "jobDescription": {
+    "title": "Job Description",
+    "text": "<p><strong>What you get to do in this role:</strong></p><p>The Advanced Technology Group (ATG) at ServiceNow is a customer-focused innovation group building intelligent software\u202fand\u202fsmart\u202fuser experiences\u202fusing existing and latest advanced\u202ftechnologies to enable end-to-end, industry-leading work experiences for customers.\u202fWe are a group of researchers, applied scientists, engineers, and product managers with a dual mission.\u202fWe build and evolve the AI platform, and partner with teams to build products and end-to-end AI-powered work experiences.\u202fIn equal measure, we lay the foundations, research, experiment, and de-risk AI technologies that unlock new work experiences in the future.</p><p>You will play a major part in building AI and Machine Learning (ML) solutions that transform the user experience and workflow efficiency of enterprise services. Traditional analytical tools tend to require a technically knowledgeable user to produce even simple results. We are taking a completely fresh approach with the expectation that any\u202fuser, regardless of technical knowledge, can use the AI/ML solutions we develop to operate the services in the enterprise setting in an thoughtful and scalable manner.\u202fWe are just getting started with our early-adopter customers and we need your help in building and making available an amazing range of solutions to our 5k+ enterprise customers around the world.</p><ul><li>Build the best cloud-based AI/ML solutions to power intelligent enterprise services</l"
+   },
+   "qualifications": {
+    "title": "Qualifications",
+    "text": "<p><strong>To be successful in this role you have:</strong></p><ul><li>Experience in leveraging or critically thinking about how to integrate AI into work processes, decision-making, or problem-solving. This may include using AI-powered tools, automating workflows, analyzing AI-driven insights, or exploring AI's potential impact on the function or industry.</li><li>Expertise in Java or Python,\u202fOOP, Design Patterns, time and space-efficient algorithms</li><li>Experience building new products that use challenging algorithms</li><li>Expertise in coding efficient, object-oriented, modularized and quality software</li><li>Knowledge of core AI/ML techniques and algorithms</li><li>Knowledge of unit testing, profiling, and code tuning</li></ul><p>&#xa0;&#xa0;</p>"
+   },
+   "additionalInformation": {
+    "title": "Additional Information",
+    "text": "<p><strong>Work Personas</strong></p><p>We approach our distributed world of work with flexibility and trust. Work personas (flexible, remote, or required in office) are categories that are assigned to ServiceNow employees depending on the nature of their work and their assigned work location. <a href=\"https://www.servicenow.com/content/dam/servicenow-assets/public/en-us/doc-type/other-document/careers/new-world-of-work-personas.pdf\" rel=\"noopener noreferrer\"><u>Learn more here</u></a>. To determine eligibility for a work persona, ServiceNow may confirm the distance between your primary residence and the closest ServiceNow office using a third-party service.</p><p><strong>Equal Opportunity Employer</strong></p><p>ServiceNow is an equal opportunity employer. All qualified applicants will receive consideration for employment without regard to race, color, creed, religion, sex, sexual orientation, national origin or nationality, ancestry, age, disability, gender identity or expression, marital status, veteran status, or any other category protected by law. In addition, all qualified applicants with arrest or conviction records will be considered for employment in accordance with legal requirements.&#xa0;</p><p><strong>Accommodations</strong></p><p>We strive to create an accessible and inclusive experience for all candidates. If you require a reasonable accommodation to complete any part of the application process, or are unable to use this online application and need an alternat"
+   }
+  }
+ },
+ "active": true,
+ "visibility": "PUBLIC",
+ "industry": {
+  "id": "it_and_services",
+  "label": "Information Technology And Services"
+ },
+ "function": {
+  "id": "engineering",
+  "label": "Engineering"
+ },
+ "department": {
+  "id": 2294021,
+  "label": "Early In Career"
+ },
+ "experienceLevel": {
+  "id": "not_applicable",
+  "label": "Not Applicable"
+ },
+ "typeOfEmployment": {
+  "id": "permanent",
+  "label": "Full-time"
+ },
+ "language": {
+  "code": "en",
+  "label": "English",
+  "labelNative": "English (US)"
+ }
+}
