@@ -75,7 +75,7 @@ def normalize_url(url: str) -> str:
 
 # --- salary -----------------------------------------------------------------
 
-SALARY_BUCKETS = ["N/A", "60k - 70k", "70k - 80k", "80k - 90k", "100k+"]
+SALARY_BUCKETS = ["N/A", "Below 60k", "60k - 70k", "70k - 80k", "80k - 90k", "100k+"]
 HOURS_PER_YEAR = 2080
 
 _MONEY_RE = re.compile(
@@ -109,12 +109,13 @@ def parse_salary_text(text: str) -> tuple[float | None, float | None]:
 def salary_bucket(lo: float | None, hi: float | None) -> str:
     """Map an annual range onto the tracker's dropdown buckets using the midpoint.
 
-    The sheet has no 90k–100k bucket; midpoints of 90k+ go to 100k+ and anything
-    under 70k (including below 60k) goes to 60k - 70k.
+    The sheet has no 90k–100k bucket, so midpoints of 90k+ go to 100k+.
     """
     if lo is None and hi is None:
         return "N/A"
     mid = ((lo or hi) + (hi or lo)) / 2
+    if mid < 60_000:
+        return "Below 60k"
     if mid < 70_000:
         return "60k - 70k"
     if mid < 80_000:

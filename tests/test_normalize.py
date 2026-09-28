@@ -29,6 +29,7 @@ def test_parse_salary_text():
 
 def test_salary_bucket():
     assert salary_bucket(None, None) == "N/A"
+    assert salary_bucket(50000, 55000) == "Below 60k"
     assert salary_bucket(60000, 70000) == "60k - 70k"
     assert salary_bucket(75000, 80000) == "70k - 80k"
     assert salary_bucket(80000, 95000) == "80k - 90k"

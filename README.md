@@ -73,7 +73,7 @@ sqlite3 jobsearch.db "select filter_reason, count(*) from postings group by 1 or
 
 ## Notes and limits
 
-- **Salary buckets.** Salary uses the tracker's buckets, placed by the midpoint of the range. The sheet has no 90k–100k bucket, so midpoints of 90k and up go to `100k+`, and anything under 70k goes to `60k - 70k`. Greenhouse has no structured pay field, so its salary is parsed from the description's pay-transparency text when present.
+- **Salary buckets.** Salary uses the tracker's buckets, placed by the midpoint of the range. The sheet has no 90k–100k bucket, so midpoints of 90k and up go to `100k+`. The Leads tab's dropdown only covers pre-formatted rows, so when leads are written below them, the dropdown is copied down too. Greenhouse has no structured pay field, so its salary is parsed from the description's pay-transparency text when present.
 - **SimplifyJobs entries.** These have no description, so the experience filter can't check them and Claude scores them from the title and company only.
 - **Multi-city postings.** Postings with the same company and title (ignoring a trailing location like " - Detroit, MI") are combined into one lead with the locations merged.
 - **Workday, Oracle Recruiting Cloud and SmartRecruiters** are searched rather than downloaded whole. SmartRecruiters has an official public API. Workday and Oracle use the undocumented JSON endpoints behind their career sites. Each search uses the default terms "software engineer" and "software developer". Titles and ages that fail the filters are dropped, and full details are fetched only for the rest. Companies are fetched 8 at a time, so a full run takes about a minute and a half. If one of these companies starts failing in `check-sources`, check its careers URL first.

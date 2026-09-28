@@ -72,13 +72,15 @@ def read_leads(ws, known: KnownJobs) -> int:
     if not rows:
         raise SheetLayoutError("Leads tab has no header row.")
     check_leads_headers(rows[0])
-    data = rows[1:]
-    for r in data:
+    occupied = 0
+    for i, r in enumerate(rows[1:], start=1):
         r = r + [""] * (4 - len(r))
         known.add(company=r[0], url=r[1], title=r[3])
-    # ws.get trims trailing empty rows but keeps interior blanks, so len(data) is the
-    # index of the last non-empty row.
-    return len(data)
+        # A row counts as used only if it has a company, link or role. Other columns can
+        # be pre-filled (e.g. the Salary dropdown defaults to "N/A" on empty rows).
+        if any(str(v).strip() for v in (r[0], r[1], r[3])):
+            occupied = i
+    return occupied
 
 
 def _safe(value):
@@ -99,7 +101,33 @@ def append_leads(ws, leads: list[Lead], occupied_rows: int) -> str | None:
     rng = f"A{start}:{LEADS_LAST_COL}{end}"
     values = [[_safe(v) for v in lead.to_row()] for lead in leads]
     ws.update(values=values, range_name=rng, value_input_option="USER_ENTERED")
+    _extend_salary_dropdown(ws, start, end)
     return rng
+
+
+SALARY_COL_INDEX = 2  # C, zero-based
+
+
+def _extend_salary_dropdown(ws, start: int, end: int) -> None:
+    """Copy the Salary dropdown from C3 onto newly written rows that lack it (the sheet's
+    pre-formatted rows end somewhere; leads can go past that)."""
+    sheet_id = getattr(ws, "id", None)
+    if sheet_id is None or not hasattr(ws, "spreadsheet"):
+        return
+    def grid(r1, r2):  # 1-based inclusive rows -> GridRange for column C
+        return {
+            "sheetId": sheet_id,
+            "startRowIndex": r1 - 1, "endRowIndex": r2,
+            "startColumnIndex": SALARY_COL_INDEX, "endColumnIndex": SALARY_COL_INDEX + 1,
+        }
+    try:
+        ws.spreadsheet.batch_update({"requests": [{"copyPaste": {
+            "source": grid(FIRST_DATA_ROW, FIRST_DATA_ROW),
+            "destination": grid(start, end),
+            "pasteType": "PASTE_DATA_VALIDATION",
+        }}]})
+    except Exception as e:  # cosmetic; the values are already written
+        log.warning("couldn't extend the Salary dropdown to rows %d-%d: %s", start, end, e)
 
 
 class SheetConfigError(Exception):

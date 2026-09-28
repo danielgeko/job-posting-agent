@@ -28,7 +28,7 @@ Row 1 holds section titles, row 2 holds headers, data starts at row 3. 70+ rows 
 | B | Status | Dropdown: Not yet, Applied, OA, Reject, Closed |
 | C | Link | Posting URL (sometimes blank) |
 | D | Done? | Checkbox — application submitted |
-| E | Salary | Dropdown: N/A, 60k - 70k, 70k - 80k, 80k - 90k, 100k+ |
+| E | Salary | Dropdown: N/A, Below 60k, 60k - 70k, 70k - 80k, 80k - 90k, 100k+ |
 | F | Role | |
 | G | Location | Sometimes "Numerous" / "Multiple" |
 | H | Take By | Deadline (e.g., for an OA) |

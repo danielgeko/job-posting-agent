@@ -84,6 +84,16 @@ def test_append_only_touches_a_through_i_below_existing_rows():
     assert ws.cells[(3, 1)] == "Old Co"
 
 
+def test_prefilled_salary_dropdown_rows_are_not_occupied():
+    ws = FakeWorksheet([["", "", "", "", "", "", "Job Leads"], LEADS_HEADER]
+                       + [["", "", "N/A"] for _ in range(38)])  # rows 3-40, like the real sheet
+    occupied = sheets.read_leads(ws, sheets.KnownJobs())
+    assert occupied == 0
+    assert sheets.append_leads(ws, [lead(1)], occupied) == "A3:I3"
+    assert ws.cells[(3, 1)] == "Co1" and ws.cells[(3, 3)] == "N/A"
+    assert ws.cells[(4, 3)] == "N/A" and (4, 1) not in ws.cells
+
+
 def test_header_mismatch_fails_loudly():
     ws = FakeWorksheet([["Job Leads"], ["Company", "Link", "Salary", "Role", "Location"]])
     with pytest.raises(sheets.SheetLayoutError, match="Add the missing columns"):
