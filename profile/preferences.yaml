@@ -34,11 +34,13 @@ filters:
     - '\blevel\s*[2-5]\b'
     - '\b(intern|internship|co-?op|summer|apprentice|student)\b'
     - '\b(phd|postdoc|post-doctoral)\b'
+    # Physical-engineering titles, unless the title also says software/firmware/embedded.
+    - '^(?!.*\b(software|firmware|embedded)\b).*\b(electrical|mechanical|chassis|diesel|emissions|battery|propulsion|hardware|mechatronics|powertrain|gear|thermal|hvac|manufacturing|civil|chemical)\b'
 
   # A title must match at least one of these to count as a software role.
   include_title_patterns:
     - '\bsoftware\b'
-    - '\bdevelop(er|ment engineer)\b'
+    - '\bdeveloper\b'
     - '\b(sde|swe)\b'
     - '\bprogrammer\b'
     - '\bforward[- ]deployed\b'

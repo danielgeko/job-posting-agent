@@ -39,9 +39,13 @@ def test_keeps_entry_level_software(cfg, title):
     assert check(post(title), cfg, NOW) is None
 
 
-@pytest.mark.parametrize("title", ["Account Executive", "Mechanical Engineer", "Recruiter", "Data Analyst"])
+@pytest.mark.parametrize("title", ["Account Executive", "Recruiter", "Data Analyst"])
 def test_drops_non_software(cfg, title):
     assert check(post(title), cfg, NOW) == "not_software"
+
+
+def test_drops_mechanical(cfg):
+    assert check(post("Mechanical Engineer"), cfg, NOW) is not None
 
 
 def test_experience_requirement(cfg):
@@ -70,3 +74,24 @@ def test_location(cfg):
 @pytest.mark.parametrize("title", ["Full Stack Engineer - 4 (JavaScript)", "Software Engineering Student"])
 def test_drops_level_suffix_and_students(cfg, title):
     assert check(post(title), cfg, NOW).startswith("title_excluded")
+
+
+@pytest.mark.parametrize("title", [
+    "Product Development Engineer - Hypoid Gear and Differential",
+    "Diesel Emissions Systems Engineer",
+    "Electrical Systems Engineer",
+    "Chassis Systems Engineer - Ford Racing",
+    "Audio Control Module - Product Development Engineer",
+])
+def test_drops_physical_engineering(cfg, title):
+    assert check(post(title), cfg, NOW) is not None
+
+
+@pytest.mark.parametrize("title", [
+    "Embedded Software Engineer - Battery Management",
+    "In-Vehicle Network Software Developer",
+    "Systems Engineer, Email Service",
+    "Software/Systems Quality Engineer",
+])
+def test_keeps_software_titles_with_hardware_words(cfg, title):
+    assert check(post(title), cfg, NOW) is None

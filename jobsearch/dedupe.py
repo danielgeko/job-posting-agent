@@ -44,7 +44,8 @@ class Group:
 
 
 # Prefer ATS sources over the community list: they carry descriptions and salary data.
-_SOURCE_RANK = {"greenhouse": 0, "lever": 0, "ashby": 0, "workday": 0, "simplify": 1}
+# Anything that isn't the community list ranks first.
+_SOURCE_RANK = {"simplify": 1}
 
 
 def group_postings(postings: list[Posting]) -> list[Group]:
@@ -55,7 +56,7 @@ def group_postings(postings: list[Posting]) -> list[Group]:
     for members in groups.values():
         members.sort(
             key=lambda m: (
-                _SOURCE_RANK.get(m.source, 2),
+                _SOURCE_RANK.get(m.source, 0),
                 -len(m.description),
                 -(m.posted_at.timestamp() if m.posted_at else 0),
             )

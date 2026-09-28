@@ -3,7 +3,7 @@
 Each day this finds new-grad and entry-level software engineering postings, filters them, scores them against my resume with Claude, and appends the good ones to the **Job Leads** tab of my Work Tracking Spreadsheet. It only discovers postings: it never applies, logs in, or edits the main tracker.
 
 ```
-discover (Greenhouse, Lever, Ashby, Workday, SimplifyJobs) → SQLite
+discover (Greenhouse, Lever, Ashby, Workday, Oracle, SmartRecruiters, SimplifyJobs) → SQLite
   → deterministic filters (seniority, experience, staleness, non-software, non-US)
   → dedupe (vs. tracker + Leads tab; merge multi-city duplicates)
   → Claude Haiku 4.5 fit score (cached per posting + prompt)
@@ -76,5 +76,5 @@ sqlite3 jobsearch.db "select filter_reason, count(*) from postings group by 1 or
 - **Salary buckets.** Salary uses the tracker's buckets, placed by the midpoint of the range. The sheet has no 90k–100k bucket, so midpoints of 90k and up go to `100k+`, and anything under 70k goes to `60k - 70k`. Greenhouse has no structured pay field, so its salary is parsed from the description's pay-transparency text when present.
 - **SimplifyJobs entries.** These have no description, so the experience filter can't check them and Claude scores them from the title and company only.
 - **Multi-city postings.** Postings with the same company and title (ignoring a trailing location like " - Detroit, MI") are combined into one lead with the locations merged.
-- **Workday** has no official API. The fetcher uses the JSON endpoint behind each career site: it searches (default terms "software engineer" and "software developer"), drops titles and ages that fail the filters, and fetches full details only for the rest, about 10 seconds per company. The endpoint is undocumented, so if a Workday company starts failing in `check-sources`, check its careers URL first.
-- **Finding boards.** `find-boards` probes Greenhouse, Lever and Ashby by company name. For Workday, it looks up site URLs in the SimplifyJobs data. Anything it can't find prints at the end. Ford (Oracle), RoviSys (custom site) and Domino's (SmartRecruiters) aren't supported yet.
+- **Workday, Oracle Recruiting Cloud and SmartRecruiters** are searched rather than downloaded whole. SmartRecruiters has an official public API. Workday and Oracle use the undocumented JSON endpoints behind their career sites. Each search uses the default terms "software engineer" and "software developer". Titles and ages that fail the filters are dropped, and full details are fetched only for the rest. Companies are fetched 8 at a time, so a full run takes about a minute and a half. If one of these companies starts failing in `check-sources`, check its careers URL first.
+- **Finding boards.** `find-boards` probes Greenhouse, Lever and Ashby by company name. For Workday, Oracle and SmartRecruiters, it looks up career sites in the SimplifyJobs data. Anything it can't find is printed at the end with the hiring system it uses (iCIMS, Avature and custom sites aren't supported).

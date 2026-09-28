@@ -30,7 +30,7 @@ def setup_logging(logs_dir, verbose: bool) -> None:
     root = logging.getLogger()
     root.setLevel(logging.DEBUG if verbose else logging.INFO)
     root.handlers[:] = [file_handler, console]
-    for noisy in ("httpx", "httpcore", "anthropic", "urllib3", "google"):
+    for noisy in ("httpx", "httpx2", "httpcore", "anthropic", "urllib3", "google"):
         logging.getLogger(noisy).setLevel(logging.WARNING)
 
 
@@ -83,22 +83,35 @@ def _probe(client, ats: str, token: str) -> int | None:
     return len(data.get("jobs", []))
 
 
-def _probe_workday(client, url: str) -> int | None:
-    """Return the site's total job count, or None if the site doesn't respond."""
-    from jobsearch.sources import workday
+def _probe_search_site(client, ats: str, where: str) -> int | None:
+    """Total job count for a Workday / Oracle / SmartRecruiters site, or None if it doesn't respond."""
+    from jobsearch.sources import oracle, smartrecruiters, workday
 
     try:
-        base, tenant, site = workday.parse_site_url(url)
-        r = client.post(
-            f"{base}/wday/cxs/{tenant}/{site}/jobs",
-            json={"appliedFacets": {}, "limit": 1, "offset": 0, "searchText": ""},
-        )
+        if ats == "workday":
+            base, tenant, site = workday.parse_site_url(where)
+            r = client.post(
+                f"{base}/wday/cxs/{tenant}/{site}/jobs",
+                json={"appliedFacets": {}, "limit": 1, "offset": 0, "searchText": ""},
+            )
+            return r.json().get("total") if r.status_code == 200 else None
+        if ats == "oracle":
+            host, site = oracle.parse_site_url(where)
+            return int(oracle.search_page(client, host, site, "", 0).get("TotalJobsCount") or 0)
+        if ats == "smartrecruiters":
+            r = client.get(smartrecruiters.URL.format(token=where), params={"limit": 1})
+            return r.json().get("totalFound") if r.status_code == 200 else None
     except Exception:
         return None
-    return r.json().get("total") if r.status_code == 200 else None
+    return None
+
+
+def _company_location(c: dict) -> str:
+    return c.get("url") or c.get("token") or ""
 
 
 def cmd_check_sources(args, settings) -> int:
+    from jobsearch.sources import ALL_ATS
     from jobsearch.sources.base import make_client
 
     companies = load_companies(settings.companies_path)
@@ -106,18 +119,14 @@ def cmd_check_sources(args, settings) -> int:
     with make_client() as client:
         for c in companies:
             ats = c.get("ats")
-            if not c.get("enabled", True) or (ats not in PROBE_URLS and ats != "workday"):
+            if not c.get("enabled", True) or ats not in ALL_ATS:
                 print(f"  skip  {c['name']} ({ats}, enabled={c.get('enabled', True)})")
                 continue
-            if ats == "workday":
-                where = c.get("url", "")
-                n = _probe_workday(client, where)
-            else:
-                where = c["token"]
-                n = _probe(client, ats, where)
+            where = _company_location(c)
+            n = _probe(client, ats, where) if ats in PROBE_URLS else _probe_search_site(client, ats, where)
             ok = n is not None
             bad += not ok
-            print(f"  {'ok ' if ok else 'FAIL'}  {c['name']:30} {ats:10} {where[:60]:60} "
+            print(f"  {'ok ' if ok else 'FAIL'}  {c['name']:30} {ats:15} {where[:60]:60} "
                   f"{'' if n is None else f'{n} jobs'}")
     return 1 if bad else 0
 
@@ -129,15 +138,15 @@ def _slug_candidates(name: str) -> list[str]:
     return list(dict.fromkeys(c for c in cands if c))
 
 
-# Workday site names that aren't the public careers site.
-_WORKDAY_SKIP_RE = re.compile(r"restricted|contractor|confidential|internal|subsidiary", re.I)
+# Career site names that aren't the public careers site.
+_SITE_SKIP_RE = re.compile(r"restricted|contractor|confidential|internal|subsidiary", re.I)
 # Site names worth suggesting alongside the main one.
-_WORKDAY_EARLY_RE = re.compile(r"new.?grad|early|university|campus|graduate|student|futureforce", re.I)
+_SITE_EARLY_RE = re.compile(r"new.?grad|early|university|campus|graduate|student|futureforce", re.I)
 _HOST_HINTS = [
     ("myworkdayjobs.com", "Workday, but its API didn't respond"),
-    ("oraclecloud.com", "Oracle Recruiting Cloud"),
+    ("oraclecloud.com", "Oracle Recruiting Cloud, but its API didn't respond"),
+    ("smartrecruiters.com", "SmartRecruiters, but its API didn't respond"),
     ("icims.com", "iCIMS"),
-    ("smartrecruiters.com", "SmartRecruiters"),
     ("avature.net", "Avature"),
     ("bamboohr.com", "BambooHR"),
     ("workable.com", "Workable"),
@@ -147,17 +156,36 @@ _HOST_HINTS = [
 ]
 
 
+def _board_from_url(url: str) -> tuple[str, str] | None:
+    """Map a posting URL to (ats, companies.yaml location) for search-based systems."""
+    from jobsearch.sources import oracle, workday
+
+    try:
+        base, _, site = workday.parse_site_url(url)
+        return "workday", f"{base}/{site}"
+    except ValueError:
+        pass
+    try:
+        host, site = oracle.parse_site_url(url)
+        return "oracle", f"https://{host}/hcmUI/CandidateExperience/en/sites/{site}"
+    except ValueError:
+        pass
+    m = re.match(r"https://(?:jobs|careers)\.smartrecruiters\.com/([^/?#]+)", url)
+    if m:
+        return "smartrecruiters", m.group(1)
+    return None
+
+
 class SimplifyIndex:
-    """Company -> career hosts / Workday sites, built from the SimplifyJobs apply URLs."""
+    """Company -> career hosts / known boards, built from the SimplifyJobs apply URLs."""
 
     def __init__(self, entries: list[dict]):
         from collections import Counter, defaultdict
 
         from jobsearch.normalize import normalize_company
-        from jobsearch.sources import workday
 
         self._norm = normalize_company
-        self.sites: dict[str, Counter] = defaultdict(Counter)
+        self.boards: dict[str, Counter] = defaultdict(Counter)  # key -> (ats, location) counts
         self.hosts: dict[str, Counter] = defaultdict(Counter)
         for j in entries:
             key = normalize_company(j.get("company_name") or "")
@@ -165,11 +193,9 @@ class SimplifyIndex:
             if not key or not url.startswith("http"):
                 continue
             self.hosts[key][url.split("/")[2]] += 1
-            try:
-                base, _, site = workday.parse_site_url(url)
-            except ValueError:
-                continue
-            self.sites[key][f"{base}/{site}"] += 1
+            board = _board_from_url(url)
+            if board:
+                self.boards[key][board] += 1
 
     @classmethod
     def fetch(cls, client) -> "SimplifyIndex":
@@ -189,17 +215,17 @@ class SimplifyIndex:
         cands = [k for k in self.hosts if len(k) >= 4 and (k.startswith(n) or n.startswith(k))]
         return max(cands, key=lambda k: sum(self.hosts[k].values()), default=None)
 
-    def workday_sites(self, name: str) -> list[str]:
-        """Main public site first, then any early-career sites."""
+    def boards_for(self, name: str) -> list[tuple[str, str]]:
+        """(ats, location) candidates: the main public site first, then any early-career sites."""
         key = self._key(name)
         if not key:
             return []
-        ranked = [u for u, _ in self.sites[key].most_common() if not _WORKDAY_SKIP_RE.search(u)]
+        ranked = [b for b, _ in self.boards[key].most_common() if not _SITE_SKIP_RE.search(b[1])]
         # Case variants of the same site ("EXTERNAL_CAREERS" / "external_careers") collapse.
-        ranked = list({u.lower(): u for u in reversed(ranked)}.values())[::-1]
+        ranked = list({(a, loc.lower()): (a, loc) for a, loc in reversed(ranked)}.values())[::-1]
         if not ranked:
             return []
-        return [ranked[0]] + [u for u in ranked[1:] if _WORKDAY_EARLY_RE.search(u)]
+        return [ranked[0]] + [b for b in ranked[1:] if _SITE_EARLY_RE.search(b[1])]
 
     def host_hint(self, name: str) -> str:
         key = self._key(name)
@@ -211,8 +237,8 @@ class SimplifyIndex:
 
 
 def cmd_find_boards(args, settings) -> int:
-    """Probe Greenhouse/Lever/Ashby for each company name, fall back to Workday sites
-    seen in the SimplifyJobs data, and print companies.yaml entries."""
+    """Probe Greenhouse/Lever/Ashby for each company name, fall back to Workday / Oracle /
+    SmartRecruiters sites seen in the SimplifyJobs data, and print companies.yaml entries."""
     from jobsearch.sources.base import make_client
 
     names = args.names
@@ -245,17 +271,18 @@ def cmd_find_boards(args, settings) -> int:
                 print(f"  - {{name: {name!r}, ats: {hit[0]}, token: {hit[1]}, enabled: true}}  # {hit[2]} jobs")
                 continue
             found = False
-            for url in index.workday_sites(name):
-                n = _probe_workday(client, url)
-                if n is not None:
+            for ats, where in index.boards_for(name):
+                n = _probe_search_site(client, ats, where)
+                if n:
                     found = True
-                    print(f"  - {{name: {name!r}, ats: workday, url: {url!r}, enabled: true}}  # {n} jobs")
+                    field = "token" if ats == "smartrecruiters" else "url"
+                    print(f"  - {{name: {name!r}, ats: {ats}, {field}: {where!r}, enabled: true}}  # {n} jobs")
             if not found:
                 misses.append((name, index.host_hint(name)))
     if misses:
         print("\n# Not found automatically (careers system in parentheses, from SimplifyJobs links).")
-        print("# For Workday, copy the careers URL (https://<co>.wdN.myworkdayjobs.com/<Site>) into an")
-        print("# `ats: workday` entry. Other systems aren't supported yet; SimplifyJobs still covers them.")
+        print("# Workday / Oracle / SmartRecruiters sites can be added by URL; other systems aren't")
+        print("# supported yet, and SimplifyJobs still covers them.")
         width = max(len(m) for m, _ in misses)
         for m, hint in misses:
             print(f"#   {m:{width}}  {hint}")
@@ -275,6 +302,7 @@ def _check_dependencies() -> None:
 
 def main(argv: list[str] | None = None) -> int:
     _check_dependencies()
+    from jobsearch.sources import ALL_ATS
     parser = argparse.ArgumentParser(prog="jobsearch", description=__doc__)
     parser.add_argument("-v", "--verbose", action="store_true")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -283,7 +311,7 @@ def main(argv: list[str] | None = None) -> int:
     p_run.add_argument("--dry-run", action="store_true", help="print leads instead of writing to the Sheet")
     p_run.add_argument("--no-score", action="store_true", help="stop after dedupe (implies --dry-run)")
     p_run.add_argument(
-        "--source", action="append", choices=["greenhouse", "lever", "ashby", "workday", "simplify"],
+        "--source", action="append", choices=[*ALL_ATS, "simplify"],
         help="limit to a source (repeatable)",
     )
     p_run.set_defaults(func=cmd_run)

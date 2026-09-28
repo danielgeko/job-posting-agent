@@ -77,6 +77,8 @@ Use public, unauthenticated job board APIs. Do not scrape LinkedIn or Indeed.
 - **Ashby:** `https://api.ashbyhq.com/posting-api/job-board/{board_name}?includeCompensation=true`
 - **Community new-grad lists on GitHub** (e.g., the SimplifyJobs New-Grad-Positions repo) as a discovery feed
 - **Workday:** no official API, but each career site is backed by a public JSON endpoint (`POST https://{tenant}.wd{N}.myworkdayjobs.com/wday/cxs/{tenant}/{site}/jobs`, max 20 per page; `GET …{externalPath}` for details). Filter on title/age before fetching details. Undocumented, so it may change.
+- **Oracle Recruiting Cloud:** `GET https://{host}/hcmRestApi/resources/latest/recruitingCEJobRequisitions?finder=findReqs;siteNumber={site},keyword="...",sortBy=POSTING_DATES_DESC` and `recruitingCEJobRequisitionDetails?finder=ById;Id="{id}",siteNumber={site}`. Undocumented.
+- **SmartRecruiters:** `https://api.smartrecruiters.com/v1/companies/{company}/postings?q=...&country=us` (official public API).
 
 Maintain a `companies.yaml` of target companies with their ATS type and board token. Seed it from companies in my tracker and add more over time. Verify endpoint formats against current docs before relying on them.
 

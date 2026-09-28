@@ -14,20 +14,21 @@ from jobsearch.db import DB
 from jobsearch.dedupe import Group, KnownJobs, group_postings
 from jobsearch.models import Lead, Posting, Score
 from jobsearch.normalize import normalize_company, salary_bucket
-from jobsearch.sources import ATS_FETCHERS, github_lists, workday
+from jobsearch.sources import ATS_FETCHERS, SEARCH_FETCHERS, github_lists
 from jobsearch.sources.base import SourceError, make_client
 
 log = logging.getLogger(__name__)
 
 MAX_LOCATIONS_SHOWN = 4
 SCORING_WORKERS = 4
+FETCH_WORKERS = 8
 
 
 @dataclass
 class RunOptions:
     dry_run: bool = False
     score: bool = True
-    sources: set[str] | None = None  # None = all; else subset of {greenhouse, lever, ashby, workday, simplify}
+    sources: set[str] | None = None  # None = all; else subset of ALL_ATS + {"simplify"}
 
 
 @dataclass
@@ -44,39 +45,45 @@ class RunResult:
 def discover(settings: Settings, opts: RunOptions, errors: list[str]) -> list[Posting]:
     companies = [c for c in load_companies(settings.companies_path) if c.get("enabled", True)]
     cfg = filters.FilterConfig.from_preferences(settings.preferences, settings.max_posting_age_days)
+    title_ok = lambda t: filters.title_reason(t, cfg) is None  # noqa: E731
     fetchers = {
         **ATS_FETCHERS,
-        "workday": lambda client, c: workday.fetch(
-            client, c,
-            title_ok=lambda t: filters.title_reason(t, cfg) is None,
-            max_age_days=settings.max_posting_age_days,
-        ),
+        **{
+            ats: (lambda client, c, f=f: f(
+                client, c, title_ok=title_ok, max_age_days=settings.max_posting_age_days
+            ))
+            for ats, f in SEARCH_FETCHERS.items()
+        },
     }
     wanted = lambda src: opts.sources is None or src in opts.sources  # noqa: E731
     postings: list[Posting] = []
-    ats_companies: set[str] = set()
+    ats_companies = {normalize_company(c["name"]) for c in companies if c.get("ats") in fetchers}
+    todo = [c for c in companies if c.get("ats") in fetchers and wanted(c["ats"])]
+
+    def fetch_one(client, c):
+        try:
+            return c, fetchers[c["ats"]](client, c), None
+        except (SourceError, ValueError) as e:
+            return c, [], e
+
     with make_client() as client:
-        for c in companies:
-            fetch = fetchers.get(c.get("ats", ""))
-            if not fetch:
-                continue
-            ats_companies.add(normalize_company(c["name"]))
-            if not wanted(c["ats"]):
-                continue
-            try:
-                got = fetch(client, c)
-                log.info("%-10s %-30s %4d postings", c["ats"], c["name"], len(got))
+        # Different companies live on different hosts, so fetch several at once; each
+        # fetcher still makes its own requests to one host sequentially.
+        with ThreadPoolExecutor(max_workers=FETCH_WORKERS) as pool:
+            for c, got, err in pool.map(lambda c: fetch_one(client, c), todo):
+                if err:
+                    errors.append(f"{c['ats']}:{c['name']}: {err}")
+                    log.error("fetch failed for %s (%s): %s", c["name"], c["ats"], err)
+                    continue
+                log.info("%-15s %-30s %4d postings", c["ats"], c["name"], len(got))
                 postings.extend(got)
-            except (SourceError, ValueError) as e:
-                errors.append(f"{c['ats']}:{c['name']}: {e}")
-                log.error("fetch failed for %s (%s): %s", c["name"], c["ats"], e)
         if wanted("simplify"):
             cats = set(settings.preferences.get("filters", {}).get("simplify_categories") or [])
             try:
                 got = github_lists.fetch(client, settings.max_posting_age_days, cats or None)
                 # Companies polled directly via their ATS are covered better there.
                 got = [p for p in got if normalize_company(p.company) not in ats_companies]
-                log.info("%-10s %-30s %4d postings", "simplify", "New-Grad-Positions", len(got))
+                log.info("%-15s %-30s %4d postings", "simplify", "New-Grad-Positions", len(got))
                 postings.extend(got)
             except SourceError as e:
                 errors.append(f"simplify: {e}")
