@@ -1,0 +1,73 @@
+# Structured master resume, used as scoring context (and later for bullet selection).
+# Source: Daniel_Gekonde_Resume.pdf. Contact details left out on purpose; scoring doesn't need them.
+# Skill strength tags are a first pass inferred from where each skill shows up; adjust freely.
+#   strong   = used in production / internship work
+#   working  = used substantively in a project or club role
+#   familiar = listed, lighter use
+
+name: Daniel Gekonde
+location: Michigan
+
+education:
+  - school: Michigan State University, College of Engineering
+    location: East Lansing, MI
+    degree: B.S. Computer Science
+    honors: [Dean's List]
+    start: 2022-08
+    graduation: 2026-12
+    coursework: [Data Structures & Algorithms, Computer Organization, Software Design, Computer Security]
+
+experience:
+  - title: Software Engineering Intern
+    company: United Wholesale Mortgage (UWM)
+    location: Pontiac, MI
+    start: 2026-05
+    end: 2026-08
+    projects:
+      - name: MIA (Most Intelligent Agent), real-time voice AI agent
+        stack: [Python, FastAPI, Orkes Conductor]
+        bullets:
+          - Collaborated in team-driven sprints developing MIA, a real-time voice AI agent handling inbound and outbound calls
+          - Created a new call handler end-to-end that triages inbound support calls and semantically submits structured tickets of up to 170 types on the caller's behalf
+          - Built a ticket-submission microservice with FastAPI capturing 14+ fields per ticket, cutting average ticket creation time by 60%
+          - Implemented lazy loading to reduce per-call token usage, lowering AI compute costs by an estimated $8.5K per year
+          - Presented the call handler and its business impact to 2,000+ IT employees
+      - name: Loyalties Platform
+        stack: [C#, .NET 8, ASP.NET, SQL Server]
+        bullets:
+          - Built and deployed an ASP.NET 8 endpoint in the production backend of an internal admin-tool microservice, replacing hardcoded dropdown values with database-driven eligibility configuration
+          - Saved the tool's admin users an estimated 10+ hours of manual work per week
+          - Converted a global feature flag to user-ID-based targeting, enabling per-user access control without redeploying
+          - Fixed a production CI/CD pipeline failure by removing deprecated code-coverage attributes across the .NET microservice
+
+projects:
+  - name: Finance Tracker ML
+    stack: [Java, Python, scikit-learn, FastAPI, GCP, Cloud Run, PostgreSQL, Android]
+    start: 2026-01
+    end: 2026-04
+    bullets:
+      - Trained a logistic regression overspending-risk model in scikit-learn on 2,700+ rows of student spending data
+      - Ported the model to run locally in Java on Android from exported JSON weights, giving instant 0-100% risk predictions with no server round-trip
+      - Deployed a FastAPI backend to Google Cloud Run backed by PostgreSQL as an always-on REST API for the Android client
+
+involvements:
+  - role: Software Lead
+    org: Autonomous Vehicle Club (MSU)
+    start: 2025-12
+    end: present
+    stack: [Python, C++, ROS 2, LiDAR, SLAM]
+    bullets:
+      - Implemented LiDAR-based SLAM to generate real-time maps of the vehicle's environment
+      - Built a point-cloud processing pipeline in Python/C++ with ROS 2 to filter raw LiDAR scans and extract obstacle and landmark data for localization
+  - role: Undergraduate Mentor
+    org: National Society of Black Engineers
+    start: 2022-08
+    end: present
+    bullets:
+      - Organized professional development workshops and networking events attended by 50+ peers
+
+skills:
+  strong: [Python, C#, .NET / ASP.NET, FastAPI, REST APIs, Microservices, AI voice agents / LLM applications]
+  working: [Java, C++, SQL, SQL Server, PostgreSQL, Google Cloud Platform, Docker, Git, ROS 2, scikit-learn, Android, CI/CD, Unit testing]
+  familiar: [Flask, Jinja, Node.js, Next.js, HTML/CSS, Jenkins, Jira, Orkes Conductor, GitHub Copilot]
+  practices: [Agile/Scrum, Project management, Team leadership]
