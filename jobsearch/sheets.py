@@ -9,6 +9,7 @@ Guardrails enforced here:
 from __future__ import annotations
 
 import logging
+import re
 
 from jobsearch.dedupe import KnownJobs
 from jobsearch.models import Lead
@@ -113,5 +114,31 @@ def open_worksheets(sa_json_path, spreadsheet_id: str, tracker_tab: str, leads_t
     if not sa_json_path.exists():
         raise SheetConfigError(f"Service account key not found at {sa_json_path} (GOOGLE_SA_JSON in .env).")
     gc = gspread.service_account(filename=str(sa_json_path))
-    sh = gc.open_by_key(spreadsheet_id)
-    return sh.worksheet(tracker_tab), sh.worksheet(leads_tab)
+    try:
+        sh = gc.open_by_key(spreadsheet_id)
+    except PermissionError as e:
+        # gspread raises a bare PermissionError for any 403; the cause says which one.
+        detail = str(e.__cause__ or e)
+        if "has not been used" in detail or "disabled" in detail:
+            url = re.search(r"https://\S+?(?=\s|$)", detail)
+            raise SheetConfigError(
+                "The Google Sheets API isn't enabled for the service account's Cloud project. "
+                f"Enable it here, wait a minute, and retry: {url.group(0) if url else detail}"
+            ) from e
+        email = getattr(gc.http_client.auth, "service_account_email", "the service account")
+        raise SheetConfigError(
+            f"No access to the spreadsheet. Share it with {email} as Editor."
+        ) from e
+    except gspread.SpreadsheetNotFound as e:
+        raise SheetConfigError(
+            f"Spreadsheet {spreadsheet_id!r} not found. Check SPREADSHEET_ID in .env "
+            "(the part of the sheet URL between /d/ and /edit)."
+        ) from e
+    tabs = {ws.title: ws for ws in sh.worksheets()}
+    missing = [t for t in (tracker_tab, leads_tab) if t not in tabs]
+    if missing:
+        raise SheetConfigError(
+            f"Tab(s) {missing} not found. Available tabs: {list(tabs)}. "
+            "Set TRACKER_TAB / LEADS_TAB in .env to match exactly."
+        )
+    return tabs[tracker_tab], tabs[leads_tab]
