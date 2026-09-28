@@ -3,7 +3,7 @@
 Each day this finds new-grad and entry-level software engineering postings, filters them, scores them against my resume with Claude, and appends the good ones to the **Job Leads** tab of my Work Tracking Spreadsheet. It only discovers postings: it never applies, logs in, or edits the main tracker.
 
 ```
-discover (Greenhouse, Lever, Ashby, SimplifyJobs) → SQLite
+discover (Greenhouse, Lever, Ashby, Workday, SimplifyJobs) → SQLite
   → deterministic filters (seniority, experience, staleness, non-software, non-US)
   → dedupe (vs. tracker + Leads tab; merge multi-city duplicates)
   → Claude Haiku 4.5 fit score (cached per posting + prompt)
@@ -21,7 +21,7 @@ cp .env.example .env    # then fill it in
 ### One-time manual steps
 
 1. **Leads tab columns.** Row 2 of the Leads tab must have these headers in A–K: `Company, Link, Salary, Role, Location, Fit Score, Why, Date Posted, Date Found, Decision, Notes`. Make **Decision** (J) a dropdown with the options *Interested* and *Skip*. The run checks A–I and refuses to write if they don't match.
-2. **Tab names.** Set `TRACKER_TAB` and `LEADS_TAB` in `.env` to the exact tab names.
+2. **`.env`.** Copy `.env.example` to `.env` (a file, not a folder). Set `TRACKER_TAB` and `LEADS_TAB` to the exact tab names shown at the bottom of the sheet.
 3. **Service account.**
    - In Google Cloud, create a project, enable the **Google Sheets API**, and create a service account with a JSON key. Save the key as `service-account.json` in the repo; it's gitignored.
    - Share the spreadsheet with the service account's email as **Editor**. Sheets can't restrict access per tab, so the read-only rule for the tracker is enforced in code (`jobsearch/sheets.py`).
@@ -76,4 +76,5 @@ sqlite3 jobsearch.db "select filter_reason, count(*) from postings group by 1 or
 - **Salary buckets.** Salary uses the tracker's buckets, placed by the midpoint of the range. The sheet has no 90k–100k bucket, so midpoints of 90k and up go to `100k+`, and anything under 70k goes to `60k - 70k`. Greenhouse has no structured pay field, so its salary is parsed from the description's pay-transparency text when present.
 - **SimplifyJobs entries.** These have no description, so the experience filter can't check them and Claude scores them from the title and company only.
 - **Multi-city postings.** Postings with the same company and title (ignoring a trailing location like " - Detroit, MI") are combined into one lead with the locations merged.
-- **Workday** has no public API. Those companies are listed with `enabled: false` and only show up through the SimplifyJobs feed.
+- **Workday** has no official API. The fetcher uses the JSON endpoint behind each career site: it searches (default terms "software engineer" and "software developer"), drops titles and ages that fail the filters, and fetches full details only for the rest, about 10 seconds per company. The endpoint is undocumented, so if a Workday company starts failing in `check-sources`, check its careers URL first.
+- **Finding boards.** `find-boards` probes Greenhouse, Lever and Ashby by company name. For Workday, it looks up site URLs in the SimplifyJobs data. Anything it can't find prints at the end. Ford (Oracle), RoviSys (custom site) and Domino's (SmartRecruiters) aren't supported yet.

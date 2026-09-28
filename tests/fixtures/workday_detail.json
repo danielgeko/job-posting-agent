@@ -1,0 +1,40 @@
+{
+ "jobPostingInfo": {
+  "id": "77ef2167306410020528df5516150000",
+  "title": "Intern, AI Software Engineering (June-August 2027)",
+  "jobDescription": "<p style=\"text-align:left\"><span>Rockwell Automation is a global technology leader focused on helping the world\u2019s manufacturers be more productive, sustainable, and agile. With more than 28,000 employees who make the world better every day, we know we have something special. Behind our customers - amazing companies that help feed the world, provide life-saving medicine on a global scale, and focus on clean water and green mobility -\u00a0our people are energized problem solvers that take pride in how the\u00a0work we do changes the world for the better.</span></p><p style=\"text-align:inherit\"></p><p style=\"text-align:left\"><span>We welcome all makers, forward thinkers, and problem solvers who are looking for a place to do their best work. And if that\u2019s you we would love to have you join us!</span></p><p style=\"text-align:inherit\"></p><p style=\"text-align:inherit\"></p><p style=\"text-align:left\"><span>Job Description</span></p><p>The AI Software Engineering Co-op role involves working on software development projects within AI. This co-op provides hands-on experience developing AI-powered solutions that enhance software quality, security, delivery velocity, and engineering efficiency.</p><br /><p>You will collaborate with experienced software engineers, AI champions, architects, and engineering leaders while contributing to real-world projects that support enterprise-scale industrial automation software development. You will be assigned a dedicated mentor to guide you through your experience and participate in networking events and company activities. </p><br /><p>This role is on a hybrid schedule working in Milwaukee, WI or Mayfield Heights, OH.</p><br /><p><i><b>This role is full-time and is ONLY June-August 2027. </b></i></p><br /><p><b>Your Responsibilities:</b></p><ul><li>You&#39;ll work with development teams, gaining hands-on experience in software development environments and using development techniques. </li><li>You will have exposure to the full development life cycle, agile methodology, system design, test-driven development, test automation, and build and configuration management. </li><li>Build software applications, services, and integrations using modern software engineering practices and AI technologies.<b><br /></b></li></ul><p><b>The Essentials - You Will Have:</b></p><ul><li>Currently pursuing a bachelor&#39;s or advanced degree from an accredited college or university</li><li>Legal authorization to work in the U.S. We will not sponsor individuals for employment visas, now or in the future, for this job opening.</li></ul><br /><p><b>The Preferred - You Might Also Have:</b></p><ul><li>Bachelor&#39;s or advanced degree from an accredited college or university in Computer Science, Software Engineering, or a related field. </li><li>Graduating in December 2027 or later</li><li>Interest in continuous innovation and improvement in software development</li><li>Proficiency in one or more programming languages, such as Angular/Node, C&#43;&#43;, C#",
+  "location": "Mayfield Heights, Ohio, United States",
+  "additionalLocations": [
+   "Milwaukee, Wisconsin, United States"
+  ],
+  "postedOn": "Posted 2 Days Ago",
+  "startDate": "2026-09-25",
+  "timeType": "Full time",
+  "jobReqId": "R26-6980",
+  "jobPostingId": "Intern--AI-Software-Engineering--June-August-2027-_R26-6980",
+  "jobPostingSiteId": "External-Rockwell-Automation-Early-Careers",
+  "country": {
+   "descriptor": "United States of America",
+   "id": "bc33aa3152ec42d4995f4791a106ed09"
+  },
+  "canApply": true,
+  "posted": true,
+  "includeResumeParsing": true,
+  "jobRequisitionLocation": {
+   "descriptor": "United States of America Mayfield Heights",
+   "country": {
+    "descriptor": "United States of America",
+    "id": "bc33aa3152ec42d4995f4791a106ed09",
+    "alpha2Code": "US"
+   }
+  },
+  "remoteType": "Hybrid",
+  "externalUrl": "https://rockwellautomation.wd1.myworkdayjobs.com/External-Rockwell-Automation-Early-Careers/job/Mayfield-Heights-Ohio-United-States/Intern--AI-Software-Engineering--June-August-2027-_R26-6980",
+  "questionnaireId": "913713ddf6861001edd1ad232b840000"
+ },
+ "hiringOrganization": {
+  "name": "Rockwell Automation (USA)",
+  "url": ""
+ },
+ "userAuthenticated": false
+}

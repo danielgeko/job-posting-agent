@@ -52,14 +52,20 @@ class FilterConfig:
         )
 
 
-def check(p: Posting, cfg: FilterConfig, now: datetime | None = None) -> str | None:
-    """Return a drop reason, or None if the posting passes. May trim p.locations to US ones."""
-    title = p.title
+def title_reason(title: str, cfg: FilterConfig) -> str | None:
     for pat in cfg.exclude_title:
         if pat.search(title):
             return f"title_excluded:{pat.pattern[:40]}"
     if cfg.include_title and not any(pat.search(title) for pat in cfg.include_title):
         return "not_software"
+    return None
+
+
+def check(p: Posting, cfg: FilterConfig, now: datetime | None = None) -> str | None:
+    """Return a drop reason, or None if the posting passes. May trim p.locations to US ones."""
+    reason = title_reason(p.title, cfg)
+    if reason:
+        return reason
 
     now = now or datetime.now(timezone.utc)
     if p.posted_at and p.posted_at < now - timedelta(days=cfg.max_age_days):

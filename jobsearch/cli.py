@@ -83,6 +83,21 @@ def _probe(client, ats: str, token: str) -> int | None:
     return len(data.get("jobs", []))
 
 
+def _probe_workday(client, url: str) -> int | None:
+    """Return the site's total job count, or None if the site doesn't respond."""
+    from jobsearch.sources import workday
+
+    try:
+        base, tenant, site = workday.parse_site_url(url)
+        r = client.post(
+            f"{base}/wday/cxs/{tenant}/{site}/jobs",
+            json={"appliedFacets": {}, "limit": 1, "offset": 0, "searchText": ""},
+        )
+    except Exception:
+        return None
+    return r.json().get("total") if r.status_code == 200 else None
+
+
 def cmd_check_sources(args, settings) -> int:
     from jobsearch.sources.base import make_client
 
@@ -90,13 +105,19 @@ def cmd_check_sources(args, settings) -> int:
     bad = 0
     with make_client() as client:
         for c in companies:
-            if c.get("ats") not in PROBE_URLS or not c.get("enabled", True):
-                print(f"  skip  {c['name']} ({c.get('ats')}, enabled={c.get('enabled', True)})")
+            ats = c.get("ats")
+            if not c.get("enabled", True) or (ats not in PROBE_URLS and ats != "workday"):
+                print(f"  skip  {c['name']} ({ats}, enabled={c.get('enabled', True)})")
                 continue
-            n = _probe(client, c["ats"], c["token"])
+            if ats == "workday":
+                where = c.get("url", "")
+                n = _probe_workday(client, where)
+            else:
+                where = c["token"]
+                n = _probe(client, ats, where)
             ok = n is not None
             bad += not ok
-            print(f"  {'ok ' if ok else 'FAIL'}  {c['name']:30} {c['ats']:10} {c['token']:25} "
+            print(f"  {'ok ' if ok else 'FAIL'}  {c['name']:30} {ats:10} {where[:60]:60} "
                   f"{'' if n is None else f'{n} jobs'}")
     return 1 if bad else 0
 
@@ -108,8 +129,28 @@ def _slug_candidates(name: str) -> list[str]:
     return list(dict.fromkeys(c for c in cands if c))
 
 
+def _workday_sites_from_simplify(client) -> dict[str, str]:
+    """Map normalized company name -> most common Workday site URL in the SimplifyJobs data."""
+    from collections import Counter, defaultdict
+
+    from jobsearch.normalize import normalize_company
+    from jobsearch.sources import github_lists, workday
+    from jobsearch.sources.base import get_json
+
+    counts: dict[str, Counter] = defaultdict(Counter)
+    for j in get_json(client, github_lists.SIMPLIFY_URL):
+        try:
+            base, _, site = workday.parse_site_url(j.get("url") or "")
+        except ValueError:
+            continue
+        counts[normalize_company(j.get("company_name") or "")][f"{base}/{site}"] += 1
+    return {name: c.most_common(1)[0][0] for name, c in counts.items()}
+
+
 def cmd_find_boards(args, settings) -> int:
-    """Probe Greenhouse/Lever/Ashby for each company name and print companies.yaml entries."""
+    """Probe Greenhouse/Lever/Ashby for each company name, fall back to Workday sites
+    seen in the SimplifyJobs data, and print companies.yaml entries."""
+    from jobsearch.normalize import normalize_company
     from jobsearch.sources.base import make_client
 
     names = args.names
@@ -125,6 +166,7 @@ def cmd_find_boards(args, settings) -> int:
     print("# Paste the hits into companies.yaml (verify each name/token first).")
     misses = []
     with make_client() as client:
+        workday_sites = _workday_sites_from_simplify(client)
         for name in names:
             if name.lower() in existing:
                 continue
@@ -137,12 +179,16 @@ def cmd_find_boards(args, settings) -> int:
                         break
                 if hit:
                     break
+            wd_url = workday_sites.get(normalize_company(name))
             if hit:
                 print(f"  - {{name: {name!r}, ats: {hit[0]}, token: {hit[1]}, enabled: true}}  # {hit[2]} jobs")
+            elif wd_url and (n := _probe_workday(client, wd_url)) is not None:
+                print(f"  - {{name: {name!r}, ats: workday, url: {wd_url!r}, enabled: true}}  # {n} jobs")
             else:
                 misses.append(name)
     if misses:
-        print("\n# Not found on Greenhouse/Lever/Ashby (likely Workday or custom):")
+        print("\n# Not found automatically. For Workday, copy the careers page URL")
+        print("# (https://<co>.wdN.myworkdayjobs.com/<Site>) into an `ats: workday` entry:")
         for m in misses:
             print(f"#   {m}")
     return 0
@@ -169,7 +215,7 @@ def main(argv: list[str] | None = None) -> int:
     p_run.add_argument("--dry-run", action="store_true", help="print leads instead of writing to the Sheet")
     p_run.add_argument("--no-score", action="store_true", help="stop after dedupe (implies --dry-run)")
     p_run.add_argument(
-        "--source", action="append", choices=["greenhouse", "lever", "ashby", "simplify"],
+        "--source", action="append", choices=["greenhouse", "lever", "ashby", "workday", "simplify"],
         help="limit to a source (repeatable)",
     )
     p_run.set_defaults(func=cmd_run)
@@ -177,7 +223,7 @@ def main(argv: list[str] | None = None) -> int:
     p_check = sub.add_parser("check-sources", help="verify every board in companies.yaml responds")
     p_check.set_defaults(func=cmd_check_sources)
 
-    p_find = sub.add_parser("find-boards", help="probe ATS boards for company names (default: tracker column A)")
+    p_find = sub.add_parser("find-boards", help="find job boards for company names (default: tracker column A)")
     p_find.add_argument("names", nargs="*")
     p_find.set_defaults(func=cmd_find_boards)
 

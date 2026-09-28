@@ -44,7 +44,7 @@ class Group:
 
 
 # Prefer ATS sources over the community list: they carry descriptions and salary data.
-_SOURCE_RANK = {"greenhouse": 0, "lever": 0, "ashby": 0, "simplify": 1}
+_SOURCE_RANK = {"greenhouse": 0, "lever": 0, "ashby": 0, "workday": 0, "simplify": 1}
 
 
 def group_postings(postings: list[Posting]) -> list[Group]:

@@ -30,9 +30,9 @@ filters:
     - '\b(senior|sr\.?|staff|principal|lead|leader|manager|director|head of|vp|vice president|architect|distinguished|fellow)\b'
     - '\b(ii|iii|iv|v)\b'                  # "Software Engineer II" (level 1 / I is kept)
     - '\b[2-5]\s*$'                        # "Software Engineer 2"
-    - '\b(engineer|developer)\s+[2-5]\b'     # "Software Engineer 2 - Payments"
+    - '\b(engineer|developer)\s*[-–,]?\s*[2-5]\b'  # "Software Engineer 2 - Payments", "Engineer - 4"
     - '\blevel\s*[2-5]\b'
-    - '\b(intern|internship|co-?op|summer|apprentice)\b'
+    - '\b(intern|internship|co-?op|summer|apprentice|student)\b'
     - '\b(phd|postdoc|post-doctoral)\b'
 
   # A title must match at least one of these to count as a software role.

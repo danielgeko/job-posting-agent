@@ -1,6 +1,7 @@
 # Target companies polled directly via their ATS public API (once per run each).
-# ats: greenhouse | lever | ashby | workday (workday has no public API; keep enabled: false)
-# token: the board slug from the careers URL, e.g. boards.greenhouse.io/<token>
+# ats: greenhouse | lever | ashby  -> token: the board slug, e.g. boards.greenhouse.io/<token>
+# ats: workday                     -> url: the careers site, https://<co>.wdN.myworkdayjobs.com/<Site>
+#                                     search: (optional) search terms, default ["software engineer", "software developer"]
 #
 # Add more with:  python -m jobsearch find-boards              (probes every company in your tracker)
 #                 python -m jobsearch find-boards "Company A" "Company B"
@@ -13,10 +14,16 @@ companies:
   - {name: May Mobility, ats: greenhouse, token: maymobility, enabled: true}
   - {name: Censys, ats: greenhouse, token: censys, enabled: true}
   - {name: StockX, ats: greenhouse, token: stockx, enabled: true}
-  - {name: Rovisys, ats: workday, token: "", enabled: false}
-  - {name: Rocket Companies, ats: workday, token: "", enabled: false}
-  - {name: Ford, ats: workday, token: "", enabled: false}
-  - {name: General Motors, ats: workday, token: "", enabled: false}
+  - {name: General Motors, ats: workday, url: "https://generalmotors.wd5.myworkdayjobs.com/Careers_GM", enabled: true}
+  - {name: Rocket Companies, ats: workday, url: "https://quickenloans.wd5.myworkdayjobs.com/rocket_careers", enabled: true}
+  - {name: Stryker, ats: workday, url: "https://stryker.wd1.myworkdayjobs.com/StrykerCareers", enabled: true}
+  - {name: Dow, ats: workday, url: "https://dow.wd1.myworkdayjobs.com/ExternalCareers", enabled: true}
+  - {name: Aptiv, ats: workday, url: "https://aptiv.wd5.myworkdayjobs.com/aptiv_careers", enabled: true}
+  - {name: Magna International, ats: workday, url: "https://magna.wd3.myworkdayjobs.com/Magna", enabled: true}
+  - {name: BorgWarner, ats: workday, url: "https://borgwarner.wd5.myworkdayjobs.com/BorgWarner_Careers", enabled: true}
+  - {name: Rockwell Automation, ats: workday, url: "https://rockwellautomation.wd1.myworkdayjobs.com/External_Rockwell_Automation", enabled: true}
+  # Not on a supported system yet (they still arrive via the SimplifyJobs feed when listed there):
+  #   Ford (Oracle Recruiting Cloud), RoviSys (custom site), Domino's (SmartRecruiters)
 
   # Fintech / AI / dev tools
   - {name: Stripe, ats: greenhouse, token: stripe, enabled: true}
@@ -26,6 +33,7 @@ companies:
   - {name: Robinhood, ats: greenhouse, token: robinhood, enabled: true}
   - {name: Coinbase, ats: greenhouse, token: coinbase, enabled: true}
   - {name: Palantir, ats: lever, token: palantir, enabled: true}
+  - {name: Capital One, ats: workday, url: "https://capitalone.wd12.myworkdayjobs.com/Capital_One", enabled: true}
   - {name: Scale AI, ats: greenhouse, token: scaleai, enabled: true}
   - {name: Cohere, ats: ashby, token: cohere, enabled: true}
   - {name: Sierra, ats: ashby, token: sierra, enabled: true}

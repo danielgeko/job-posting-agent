@@ -53,3 +53,48 @@ def test_fetch_retries_on_429(load_fixture, monkeypatch):
     with make_client() as client:
         posts = greenhouse.fetch(client, {"name": "Stripe", "token": "stripe"})
     assert route.call_count == 2 and len(posts) == 3
+
+
+def test_workday_parse_site_url():
+    from jobsearch.sources.workday import parse_site_url
+
+    assert parse_site_url("https://generalmotors.wd5.myworkdayjobs.com/en-US/Careers_GM/job/x") == (
+        "https://generalmotors.wd5.myworkdayjobs.com", "generalmotors", "Careers_GM")
+    assert parse_site_url("https://intel.wd1.myworkdayjobs.com/en-us/External")[2] == "External"
+
+
+def test_workday_posted_on():
+    from datetime import datetime, timedelta, timezone
+
+    from jobsearch.sources.workday import parse_posted_on
+
+    now = datetime(2026, 9, 28, tzinfo=timezone.utc)
+    assert parse_posted_on("Posted Today", now) == now
+    assert parse_posted_on("Posted Yesterday", now) == now - timedelta(days=1)
+    assert parse_posted_on("Posted 30+ Days Ago", now) == now - timedelta(days=30)
+
+
+@respx.mock
+def test_workday_fetch_filters_titles_before_detail_calls(load_fixture, monkeypatch):
+    from datetime import datetime, timezone
+
+    from jobsearch.sources import workday
+
+    monkeypatch.setattr(workday.time, "sleep", lambda s: None)
+    base = "https://rockwellautomation.wd1.myworkdayjobs.com/wday/cxs/rockwellautomation/Early"
+    search = respx.post(f"{base}/jobs").mock(
+        return_value=httpx.Response(200, json=load_fixture("workday_search.json")))
+    first = load_fixture("workday_search.json")["jobPostings"][0]
+    detail = respx.get(f"{base}{first['externalPath']}").mock(
+        return_value=httpx.Response(200, json=load_fixture("workday_detail.json")))
+    company = {"name": "Rockwell", "url": "https://rockwellautomation.wd1.myworkdayjobs.com/Early",
+               "search": ["software"]}
+    with make_client() as client:
+        posts = workday.fetch(client, company, title_ok=lambda t: t == first["title"],
+                              now=datetime(2026, 9, 28, tzinfo=timezone.utc))
+    assert search.call_count == 1 and detail.call_count == 1  # other titles never fetched
+    (p,) = posts
+    assert p.source == "workday" and p.external_id.startswith("rockwellautomation:")
+    assert p.locations[0] == "Mayfield Heights, Ohio, United States" and len(p.locations) == 2
+    assert p.description and "<" not in p.description
+    assert p.url.startswith("https://rockwellautomation.wd1.myworkdayjobs.com/")

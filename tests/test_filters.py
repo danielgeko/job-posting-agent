@@ -65,3 +65,8 @@ def test_location(cfg):
     assert check(post("Software Engineer", locs=["London", "Toronto"]), cfg, NOW) == "non_us_location"
     p = post("Software Engineer", locs=["London", "New York, NY"])
     assert check(p, cfg, NOW) is None and p.locations == ["New York, NY"]
+
+
+@pytest.mark.parametrize("title", ["Full Stack Engineer - 4 (JavaScript)", "Software Engineering Student"])
+def test_drops_level_suffix_and_students(cfg, title):
+    assert check(post(title), cfg, NOW).startswith("title_excluded")

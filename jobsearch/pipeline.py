@@ -14,7 +14,7 @@ from jobsearch.db import DB
 from jobsearch.dedupe import Group, KnownJobs, group_postings
 from jobsearch.models import Lead, Posting, Score
 from jobsearch.normalize import normalize_company, salary_bucket
-from jobsearch.sources import ATS_FETCHERS, github_lists
+from jobsearch.sources import ATS_FETCHERS, github_lists, workday
 from jobsearch.sources.base import SourceError, make_client
 
 log = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ SCORING_WORKERS = 4
 class RunOptions:
     dry_run: bool = False
     score: bool = True
-    sources: set[str] | None = None  # None = all; else subset of {greenhouse, lever, ashby, simplify}
+    sources: set[str] | None = None  # None = all; else subset of {greenhouse, lever, ashby, workday, simplify}
 
 
 @dataclass
@@ -43,12 +43,21 @@ class RunResult:
 
 def discover(settings: Settings, opts: RunOptions, errors: list[str]) -> list[Posting]:
     companies = [c for c in load_companies(settings.companies_path) if c.get("enabled", True)]
+    cfg = filters.FilterConfig.from_preferences(settings.preferences, settings.max_posting_age_days)
+    fetchers = {
+        **ATS_FETCHERS,
+        "workday": lambda client, c: workday.fetch(
+            client, c,
+            title_ok=lambda t: filters.title_reason(t, cfg) is None,
+            max_age_days=settings.max_posting_age_days,
+        ),
+    }
     wanted = lambda src: opts.sources is None or src in opts.sources  # noqa: E731
     postings: list[Posting] = []
     ats_companies: set[str] = set()
     with make_client() as client:
         for c in companies:
-            fetch = ATS_FETCHERS.get(c.get("ats", ""))
+            fetch = fetchers.get(c.get("ats", ""))
             if not fetch:
                 continue
             ats_companies.add(normalize_company(c["name"]))
@@ -58,7 +67,7 @@ def discover(settings: Settings, opts: RunOptions, errors: list[str]) -> list[Po
                 got = fetch(client, c)
                 log.info("%-10s %-30s %4d postings", c["ats"], c["name"], len(got))
                 postings.extend(got)
-            except SourceError as e:
+            except (SourceError, ValueError) as e:
                 errors.append(f"{c['ats']}:{c['name']}: {e}")
                 log.error("fetch failed for %s (%s): %s", c["name"], c["ats"], e)
         if wanted("simplify"):

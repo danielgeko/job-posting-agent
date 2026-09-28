@@ -76,7 +76,7 @@ Use public, unauthenticated job board APIs. Do not scrape LinkedIn or Indeed.
 - **Lever:** `https://api.lever.co/v0/postings/{company}?mode=json`
 - **Ashby:** `https://api.ashbyhq.com/posting-api/job-board/{board_name}?includeCompensation=true`
 - **Community new-grad lists on GitHub** (e.g., the SimplifyJobs New-Grad-Positions repo) as a discovery feed
-- Workday has no public API; skip for now
+- **Workday:** no official API, but each career site is backed by a public JSON endpoint (`POST https://{tenant}.wd{N}.myworkdayjobs.com/wday/cxs/{tenant}/{site}/jobs`, max 20 per page; `GET …{externalPath}` for details). Filter on title/age before fetching details. Undocumented, so it may change.
 
 Maintain a `companies.yaml` of target companies with their ATS type and board token. Seed it from companies in my tracker and add more over time. Verify endpoint formats against current docs before relying on them.
 

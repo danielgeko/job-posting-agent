@@ -10,3 +10,7 @@ __pycache__/
 .pytest_cache/
 profile/resume.*
 !profile/resume.yaml
+
+# Any JSON at the repo root (service account keys)
+/*.json
+.DS_Store

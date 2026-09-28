@@ -1,0 +1,33 @@
+{
+ "total": 3,
+ "jobPostings": [
+  {
+   "title": "Intern, AI Software Engineering (June-August 2027)",
+   "externalPath": "/job/Mayfield-Heights-Ohio-United-States/Intern--AI-Software-Engineering--June-August-2027-_R26-6980",
+   "locationsText": "2 Locations",
+   "postedOn": "Posted 2 Days Ago",
+   "bulletFields": [
+    "R26-6980"
+   ]
+  },
+  {
+   "title": "Co-op, AI Software Engineering (6-8 months)",
+   "externalPath": "/job/Mayfield-Heights-Ohio-United-States/Co-op--AI-Software-Engineering--6-8-months-_R26-6982",
+   "locationsText": "2 Locations",
+   "postedOn": "Posted 2 Days Ago",
+   "bulletFields": [
+    "R26-6982"
+   ]
+  },
+  {
+   "title": "Co-op, Robotics Research \u2013 Data Engineering (OTTO at Rockwell Automation)",
+   "externalPath": "/job/Waterloo-Ontario-Canada/Co-op--Robotics-Research---Data-Engineering--OTTO-at-Rockwell-Automation-_R26-6871",
+   "locationsText": "Waterloo, Ontario, Canada",
+   "postedOn": "Posted 9 Days Ago",
+   "bulletFields": [
+    "R26-6871"
+   ]
+  }
+ ],
+ "userAuthenticated": false
+}
