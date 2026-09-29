@@ -110,6 +110,24 @@ def test_read_tracker():
     assert ("rovisys", "entry level engineer/developer") in known.company_titles
 
 
+def test_read_tracker_with_header_in_row_1():
+    # Layout after converting the tab to a Sheets table: headers in row 1, a mostly empty row 2.
+    ws = FakeWorksheet([
+        ["Company", "Status", "Link", "Done?", "Salary", "Role", "Location"],
+        ["", "", "", "", "", "", "", "", "OA?"],
+        ["Goldman Sachs", "OA", "https://higher.gs.com/roles/180807", True, "100k+", "Analyst"],
+    ])
+    known = sheets.read_tracker(ws)
+    assert ("goldmansachs", "analyst") in known.company_titles
+    assert "https://higher.gs.com/roles/180807" in known.urls
+
+
+def test_read_tracker_bad_layout_still_fails():
+    ws = FakeWorksheet([["Title"], ["Name", "Status", "URL"]])
+    with pytest.raises(sheets.SheetLayoutError, match="row 2 column A"):
+        sheets.read_tracker(ws)
+
+
 def test_formula_like_values_are_escaped():
     ws = FakeWorksheet([["Job Leads"], LEADS_HEADER])
     bad = lead(1)

@@ -35,13 +35,22 @@ def _norm(h: str) -> str:
     return " ".join(str(h).strip().lower().replace("?", "").split())
 
 
-def check_tracker_headers(header_row: list[str]) -> None:
+def check_tracker_headers(header_row: list[str], row_number: int = HEADER_ROW) -> None:
     for idx, expected in TRACKER_HEADERS.items():
         got = _norm(header_row[idx]) if idx < len(header_row) else ""
         if got != expected:
             raise SheetLayoutError(
-                f"Tracker row {HEADER_ROW} column {chr(65 + idx)} is {got!r}, expected {expected!r}."
+                f"Tracker row {row_number} column {chr(65 + idx)} is {got!r}, expected {expected!r}."
             )
+
+
+def _tracker_header_index(rows: list[list[str]]) -> int:
+    """Index of the header row among the first two rows. Row 2 in the original layout;
+    row 1 once the tab is converted to a Sheets table (tables use a single header row)."""
+    for i, r in enumerate(rows[:2]):
+        if r and _norm(r[0]) == TRACKER_HEADERS[0]:
+            return i
+    return HEADER_ROW - 1
 
 
 def check_leads_headers(header_row: list[str]) -> None:
@@ -55,12 +64,13 @@ def check_leads_headers(header_row: list[str]) -> None:
 
 
 def read_tracker(ws) -> KnownJobs:
-    rows = ws.get(f"A{HEADER_ROW}:F")
+    rows = ws.get("A1:F")
     if not rows:
         raise SheetLayoutError("Tracker tab is empty.")
-    check_tracker_headers(rows[0])
+    h = _tracker_header_index(rows)
+    check_tracker_headers(rows[h] if h < len(rows) else [], row_number=h + 1)
     known = KnownJobs()
-    for r in rows[1:]:
+    for r in rows[h + 1:]:
         r = r + [""] * (6 - len(r))
         known.add(company=r[0], url=r[2], title=r[5])
     return known
