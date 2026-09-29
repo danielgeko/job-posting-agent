@@ -108,11 +108,55 @@ def append_leads(ws, leads: list[Lead], occupied_rows: int) -> str | None:
     end = start + len(leads) - 1
     if ws.row_count < end:
         ws.add_rows(end - ws.row_count)
+    table = _leads_table(ws)
+    if table:
+        # Grow the table first so new rows get its formatting and column types (dropdowns,
+        # dates, checkboxes) instead of landing unformatted below it.
+        _grow_table(ws, table, end)
     rng = f"A{start}:{LEADS_LAST_COL}{end}"
     values = [[_safe(v) for v in lead.to_row()] for lead in leads]
     ws.update(values=values, range_name=rng, value_input_option="USER_ENTERED")
-    _extend_salary_dropdown(ws, start, end)
+    if not table:
+        _extend_salary_dropdown(ws, start, end)
     return rng
+
+
+def _leads_table(ws) -> dict | None:
+    """The Sheets table whose header row is the Leads header row, if the tab is a table."""
+    if not hasattr(ws, "spreadsheet"):
+        return None
+    try:
+        meta = ws.spreadsheet.fetch_sheet_metadata(
+            params={"fields": "sheets(properties(sheetId),tables(tableId,range))"}
+        )
+    except Exception as e:
+        log.warning("couldn't read table metadata: %s", e)
+        return None
+    for sh in meta.get("sheets", []):
+        if sh.get("properties", {}).get("sheetId") != ws.id:
+            continue
+        for t in sh.get("tables", []):
+            r = t.get("range", {})
+            if r.get("startRowIndex", 0) == HEADER_ROW - 1 and r.get("startColumnIndex", 0) == 0:
+                return t
+    return None
+
+
+def _grow_table(ws, table: dict, last_row: int) -> None:
+    """Extend the table's range down to `last_row` (1-based) if it's shorter. Only the
+    row extent changes; the table's columns are left as they are."""
+    rng = dict(table["range"])
+    if rng.get("endRowIndex", 0) >= last_row:
+        return
+    rng["endRowIndex"] = last_row
+    try:
+        ws.spreadsheet.batch_update({"requests": [{"updateTable": {
+            "table": {"tableId": table["tableId"], "range": rng},
+            "fields": "range",
+        }}]})
+        log.info("extended Leads table to row %d", last_row)
+    except Exception as e:  # values still get written, just outside the table
+        log.warning("couldn't extend the Leads table to row %d: %s", last_row, e)
 
 
 SALARY_COL_INDEX = 2  # C, zero-based

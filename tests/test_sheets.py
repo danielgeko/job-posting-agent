@@ -94,6 +94,43 @@ def test_prefilled_salary_dropdown_rows_are_not_occupied():
     assert ws.cells[(4, 3)] == "N/A" and (4, 1) not in ws.cells
 
 
+class FakeSpreadsheet:
+    def __init__(self, sheet_id, table_range):
+        self.sheet_id, self.table_range = sheet_id, table_range
+        self.requests = []
+
+    def fetch_sheet_metadata(self, params=None):
+        return {"sheets": [{"properties": {"sheetId": self.sheet_id},
+                            "tables": [{"tableId": "t1", "range": self.table_range}]}]}
+
+    def batch_update(self, body):
+        self.requests.extend(body["requests"])
+        return {"replies": []}
+
+
+def test_table_is_grown_to_fit_new_leads():
+    ws = FakeWorksheet([["", "", "", "", "", "", "Job Leads"], LEADS_HEADER, ["Old", "https://o", "", "SWE"]])
+    ws.id = 7
+    # Table covers rows 2-5 (header + 3 data rows), columns A-J.
+    ws.spreadsheet = FakeSpreadsheet(7, {"sheetId": 7, "startRowIndex": 1, "endRowIndex": 5,
+                                         "startColumnIndex": 0, "endColumnIndex": 10})
+    occupied = sheets.read_leads(ws, sheets.KnownJobs())
+    assert sheets.append_leads(ws, [lead(i) for i in range(5)], occupied) == "A4:I8"
+    (req,) = ws.spreadsheet.requests  # one updateTable; no dropdown copy inside a table
+    assert req["updateTable"]["fields"] == "range"
+    assert req["updateTable"]["table"]["range"]["endRowIndex"] == 8
+    assert req["updateTable"]["table"]["range"]["endColumnIndex"] == 10  # columns unchanged
+
+
+def test_table_not_grown_when_big_enough():
+    ws = FakeWorksheet([["Job Leads"], LEADS_HEADER])
+    ws.id = 7
+    ws.spreadsheet = FakeSpreadsheet(7, {"sheetId": 7, "startRowIndex": 1, "endRowIndex": 100,
+                                         "startColumnIndex": 0, "endColumnIndex": 10})
+    sheets.append_leads(ws, [lead(1)], 0)
+    assert ws.spreadsheet.requests == []
+
+
 def test_header_mismatch_fails_loudly():
     ws = FakeWorksheet([["Job Leads"], ["Company", "Link", "Salary", "Role", "Location"]])
     with pytest.raises(sheets.SheetLayoutError, match="Add the missing columns"):
