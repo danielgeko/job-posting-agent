@@ -109,3 +109,13 @@ def test_drops_industrial_engineering_titles(cfg, title):
 @pytest.mark.parametrize("title", ["QA Engineer", "SDET I", "Test Automation Engineer", "SCADA Ignition Developer"])
 def test_keeps_software_testing_titles(cfg, title):
     assert check(post(title), cfg, NOW) is None
+
+
+@pytest.mark.parametrize("title", ["Reliability Engineer", "Rotating Reliability Engineer", "Control Systems Engineer"])
+def test_drops_plant_reliability_and_controls(cfg, title):
+    assert check(post(title), cfg, NOW) is not None
+
+
+@pytest.mark.parametrize("title", ["Site Reliability Engineer", "Software Engineer (.NET & AI)", "Systems Engineer, Email Service"])
+def test_keeps_sre_and_software(cfg, title):
+    assert check(post(title), cfg, NOW) is None

@@ -121,3 +121,41 @@ companies:
   - {name: Verkada, ats: greenhouse, token: verkada, enabled: true}
   - {name: Epic Games, ats: greenhouse, token: epicgames, enabled: true}
   - {name: Jane Street, ats: greenhouse, token: janestreet, enabled: true}
+
+  # Dallas–Fort Worth: 2026 Fortune 500 headquarters (source: CultureMap Dallas, 2026 list).
+  # Texas Instruments is listed above.
+  - {name: McKesson, ats: workday, url: "https://mckesson.wd3.myworkdayjobs.com/External_Careers", enabled: true}
+  - {name: AT&T, ats: workday, url: "https://att.wd1.myworkdayjobs.com/ATTGeneral", enabled: true}
+  - {name: Caterpillar, ats: workday, url: "https://cat.wd5.myworkdayjobs.com/CaterpillarCareers", enabled: true}
+  - {name: Southwest Airlines, ats: workday, url: "https://swa.wd1.myworkdayjobs.com/external", enabled: true}
+  - {name: Kimberly-Clark, ats: workday, url: "https://kimberlyclark.wd1.myworkdayjobs.com/GLOBAL", enabled: true}
+  - {name: Vistra, ats: workday, url: "https://vst.wd5.myworkdayjobs.com/vistra_careers", enabled: true}
+  - {name: Primoris Services, ats: workday, url: "https://prim.wd108.myworkdayjobs.com/Primoris", enabled: true}
+  - {name: Somnigroup International, ats: workday, url: "https://som.wd5.myworkdayjobs.com/External", enabled: true}
+  - {name: Tenet Healthcare, ats: oracle, url: "https://eodr.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001", enabled: true}
+  - {name: AECOM, ats: smartrecruiters, token: AECOM2, enabled: true}
+  - {name: HF Sinclair, ats: successfactors, url: "https://careers.hfsinclair.com", enabled: true}
+  # Not supported yet:
+  #   Taleo: Energy Transfer, D.R. Horton         iCIMS: Charles Schwab, Builders FirstSource
+  #   Eightfold: Fluor, Keurig Dr Pepper           SuccessFactors behind bot protection: American Airlines
+  #   Unknown/custom: CBRE, Jacobs, Celanese, Commercial Metals
+  #   Yum China: HQ in Plano, but its jobs are in China
+
+  # Minneapolis–St. Paul: 2026 Fortune 500 headquarters in the metro (source: Security Bank,
+  # "Minnesota's Fortune 500 Companies of 2026"). Target is listed above; Hormel (Austin)
+  # and Fastenal (Winona) are outside the metro.
+  - {name: U.S. Bancorp, ats: workday, url: "https://usbank.wd1.myworkdayjobs.com/US_Bank_Careers", enabled: true}
+  - {name: 3M, ats: workday, url: "https://3m.wd1.myworkdayjobs.com/Search", enabled: true}
+  - {name: General Mills, ats: workday, url: "https://genmills.wd1.myworkdayjobs.com/GMI_External_Careers", enabled: true}
+  - {name: Ameriprise Financial, ats: workday, url: "https://ameriprise.wd5.myworkdayjobs.com/Ameriprise", enabled: true}
+  - {name: C.H. Robinson, ats: workday, url: "https://chrobinson.wd5.myworkdayjobs.com/CHRobinson", enabled: true}
+  - {name: Land O'Lakes, ats: workday, url: "https://landolakes.wd1.myworkdayjobs.com/LandOLakes", enabled: true}
+  - {name: Ecolab, ats: workday, url: "https://ecolab.wd1.myworkdayjobs.com/ecolab_external", enabled: true}
+  - {name: Xcel Energy, ats: workday, url: "https://xcelenergy.wd1.myworkdayjobs.com/External", enabled: true}
+  - {name: Thrivent, ats: workday, url: "https://thrivent.wd5.myworkdayjobs.com/External", enabled: true}
+  - {name: Solventum, ats: workday, url: "https://healthcare.wd1.myworkdayjobs.com/search", enabled: true}
+  - {name: Securian Financial, ats: workday, url: "https://hq.wd12.myworkdayjobs.com/Securian_External", enabled: true}
+  - {name: CHS, ats: successfactors, url: "https://careers.chsinc.com", enabled: true}
+  # Not supported yet:
+  #   Taleo (via Radancy): UnitedHealth Group     UKG: Best Buy (its Workday site is Canada-only)
+  #   Unknown/custom: APi Group

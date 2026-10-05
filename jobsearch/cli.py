@@ -244,6 +244,97 @@ class SimplifyIndex:
         return f"{system} ({host})"
 
 
+_ATS_LINK_RE = re.compile(
+    r"https?://[\w.-]*(?:myworkdayjobs\.com/[\w-]+(?:/[\w-]+)?"
+    r"|oraclecloud\.com/hcmUI/CandidateExperience/\w+/sites/\w+"
+    r"|smartrecruiters\.com/[\w]+"
+    r"|boards(?:-api)?\.greenhouse\.io/[\w-]+|job-boards\.greenhouse\.io/[\w-]+"
+    r"|jobs\.lever\.co/[\w-]+|jobs\.ashbyhq\.com/[\w-]+)"
+)
+_JOB_HOST_RE = re.compile(r"https?://((?:jobs|careers|career|job)[\w-]*\.[\w.-]+)", re.I)
+_WORKDAY_SERVERS = ["1", "5", "3", "12", "503"]
+_WORKDAY_SITES = ["External", "Careers", "{t}", "{t}_Careers", "{T}Careers", "External_Careers",
+                  "ExternalCareers", "Search"]
+
+
+def _company_slugs(name: str) -> list[str]:
+    words = re.sub(r"[^a-z0-9 ]", " ", name.lower().replace("&", " ")).split()
+    stop = {"inc", "corp", "corporation", "company", "co", "group", "the", "holdings", "financial", "services"}
+    core = [w for w in words if w not in stop] or words
+    return list(dict.fromkeys(s for s in ["".join(core), "".join(words), core[0] if core else ""] if s))
+
+
+def _boards_in_page(client, url: str) -> tuple[list[tuple[str, str]], set[str]]:
+    """Supported boards linked from a careers page, plus job-ish hosts it links to."""
+    try:
+        r = client.get(url, timeout=15)
+    except Exception:
+        return [], set()
+    if r.status_code != 200:
+        return [], set()
+    boards = []
+    for link in dict.fromkeys(_ATS_LINK_RE.findall(r.text)):
+        board = _board_from_url(link)
+        if board:
+            boards.append(board)
+            continue
+        m = re.search(r"greenhouse\.io/([\w-]+)|lever\.co/([\w-]+)|ashbyhq\.com/([\w-]+)", link)
+        if m:
+            ats = ("greenhouse", "lever", "ashby")[[g is not None for g in m.groups()].index(True)]
+            boards.append((ats, next(g for g in m.groups() if g)))
+    hosts = {h.lower() for h in _JOB_HOST_RE.findall(r.text)} | {r.url.host}
+    return boards, hosts
+
+
+def _is_successfactors(client, host: str) -> int | None:
+    from jobsearch.sources import successfactors
+
+    try:
+        r = client.get(f"https://{host}/search/", params={"q": "", "startrow": 0}, timeout=15)
+    except Exception:
+        return None
+    rows = successfactors.parse_search_page(r.text) if r.status_code == 200 else []
+    return len(rows) or None
+
+
+def _guess_workday(client, slugs: list[str]) -> list[tuple[str, int]]:
+    from concurrent.futures import ThreadPoolExecutor
+
+    combos = [
+        f"https://{t}.wd{wd}.myworkdayjobs.com/{s.format(t=t, T=t.capitalize())}"
+        for t in slugs[:2] for wd in _WORKDAY_SERVERS for s in _WORKDAY_SITES
+    ]
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        counts = list(pool.map(lambda u: _probe_search_site(client, "workday", u), combos))
+    return [(u, n) for u, n in zip(combos, counts) if n]
+
+
+def _deep_search(client, name: str, careers_url: str | None) -> list[tuple[str, str, int]]:
+    """Slower discovery for names the quick pass missed: scan likely careers pages for links
+    to supported systems (and detect SuccessFactors sites on the hosts they link to), then
+    guess Workday tenant/site addresses. Returns (ats, location, job count) hits."""
+    slugs = _company_slugs(name)
+    pages = [careers_url] if careers_url else []
+    for s in slugs[:2]:
+        pages += [f"https://careers.{s}.com", f"https://jobs.{s}.com", f"https://www.{s}.com/careers"]
+    found: dict[tuple[str, str], int] = {}
+    hosts: set[str] = set()
+    for page in dict.fromkeys(pages):
+        boards, page_hosts = _boards_in_page(client, page)
+        hosts |= page_hosts
+        for ats, where in boards:
+            n = _probe(client, ats, where) if ats in PROBE_URLS else _probe_search_site(client, ats, where)
+            if n:
+                found[(ats, where)] = n
+    for host in sorted(hosts):
+        if any(s in host for s in slugs) and (n := _is_successfactors(client, host)):
+            found[("successfactors", f"https://{host}")] = n
+    if not found:
+        for url, n in _guess_workday(client, slugs):
+            found[("workday", url)] = n
+    return [(ats, where, n) for (ats, where), n in found.items()]
+
+
 def cmd_find_boards(args, settings) -> int:
     """Probe Greenhouse/Lever/Ashby for each company name, fall back to Workday / Oracle /
     SmartRecruiters sites seen in the SimplifyJobs data, and print companies.yaml entries."""
@@ -258,6 +349,7 @@ def cmd_find_boards(args, settings) -> int:
         )
         names = [r[0] for r in tracker_ws.get("A3:A") if r and r[0].strip()]
     names = list(dict.fromkeys(n.strip() for n in names))
+    args.careers_url = dict(pair.split("=", 1) for pair in args.careers_url)
     existing = {c["name"].lower() for c in load_companies(settings.companies_path)}
     print("# Paste the hits into companies.yaml (verify each name/token first).")
     misses = []
@@ -285,6 +377,11 @@ def cmd_find_boards(args, settings) -> int:
                     found = True
                     field = "token" if ats == "smartrecruiters" else "url"
                     print(f"  - {{name: {name!r}, ats: {ats}, {field}: {where!r}, enabled: true}}  # {n} jobs")
+            if not found and args.deep:
+                for ats, where, n in _deep_search(client, name, args.careers_url.get(name)):
+                    found = True
+                    field = "token" if ats in ("smartrecruiters", *PROBE_URLS) else "url"
+                    print(f"  - {{name: {name!r}, ats: {ats}, {field}: {where!r}, enabled: true}}  # {n} jobs (--deep)")
             if not found:
                 misses.append((name, index.host_hint(name)))
     if misses:
@@ -329,6 +426,14 @@ def main(argv: list[str] | None = None) -> int:
 
     p_find = sub.add_parser("find-boards", help="find job boards for company names (default: tracker column A)")
     p_find.add_argument("names", nargs="*")
+    p_find.add_argument(
+        "--deep", action="store_true",
+        help="for names not found quickly: scan likely careers pages and guess Workday addresses (slower)",
+    )
+    p_find.add_argument(
+        "--careers-url", action="append", default=[], metavar="NAME=URL",
+        help="careers page to scan for a company with --deep (repeatable)",
+    )
     p_find.set_defaults(func=cmd_find_boards)
 
     args = parser.parse_args(argv)

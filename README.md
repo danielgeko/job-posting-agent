@@ -41,6 +41,7 @@ Run commands with the project virtualenv's Python. Conda's `base` Python doesn't
 .venv/bin/python -m jobsearch check-sources         # verify every board in companies.yaml responds
 .venv/bin/python -m jobsearch find-boards           # probe ATS boards for every company in the tracker
 .venv/bin/python -m jobsearch find-boards "Acme" "Globex"
+.venv/bin/python -m jobsearch find-boards --deep "Acme" --careers-url "Acme=https://careers.acme.com"  # slower: scan careers pages, guess Workday addresses
 ```
 
 Each run writes a log to `logs/YYYY-MM-DD.log` and a row to the `runs` table in `jobsearch.db`. The row records counts per stage (fetched, filtered by reason, known, scored, written) and any errors.

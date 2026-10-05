@@ -32,3 +32,29 @@ def test_simplify_index_workday_sites_and_hints():
     assert idx.host_hint("Ford").startswith("Oracle Recruiting Cloud")
     assert idx.host_hint("GM") == "not in SimplifyJobs data"
     assert idx.boards_for("Domino's") == [("smartrecruiters", "Dominos")]
+
+
+def test_company_slugs():
+    from jobsearch.cli import _company_slugs
+
+    assert _company_slugs("General Mills")[0] == "generalmills"
+    assert _company_slugs("AT&T")[0] == "att"
+    assert _company_slugs("Ameriprise Financial")[0] == "ameriprise"  # 'financial' dropped
+
+
+def test_boards_in_page_finds_supported_links():
+    import httpx
+    import respx
+
+    from jobsearch.cli import _boards_in_page
+
+    html = """<a href="https://usbank.wd1.myworkdayjobs.com/en-US/US_Bank_Careers/job/x">Jobs</a>
+              <a href="https://job-boards.greenhouse.io/acme/jobs/1">GH</a>
+              <a href="https://careers.example.com/search">Search</a>"""
+    with respx.mock:
+        respx.get("https://www.example.com/careers").mock(return_value=httpx.Response(200, text=html))
+        with httpx.Client() as client:
+            boards, hosts = _boards_in_page(client, "https://www.example.com/careers")
+    assert ("workday", "https://usbank.wd1.myworkdayjobs.com/US_Bank_Careers") in boards
+    assert ("greenhouse", "acme") in boards
+    assert "careers.example.com" in hosts
