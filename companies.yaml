@@ -33,6 +33,27 @@ companies:
   - {name: GM Financial, ats: oracle, url: "https://fa-exvu-saasfaprod1.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1", enabled: true}
   - {name: Domino's, ats: smartrecruiters, token: Dominos, enabled: true}
   - {name: Bosch, ats: smartrecruiters, token: BoschGroup, enabled: true}
+
+  # Michigan-headquartered Fortune 1000 (sources: globalEDGE 2020 Fortune 1000 list,
+  # Detroit Regional Chamber 2025 Fortune 500 list). GM, Ford, Dow, Stryker, Rocket,
+  # BorgWarner, Auto-Owners and Domino's are above.
+  - {name: Ally Financial, ats: workday, url: "https://ally.wd1.myworkdayjobs.com/ally", enabled: true}
+  - {name: Masco, ats: workday, url: "https://masco.wd1.myworkdayjobs.com/Masco", enabled: true}
+  - {name: Credit Acceptance, ats: workday, url: "https://creditacceptance.wd5.myworkdayjobs.com/Credit_Acceptance", enabled: true}
+  - {name: Gentex, ats: workday, url: "https://gentex.wd5.myworkdayjobs.com/Gentex", enabled: true}
+  - {name: Adient, ats: workday, url: "https://adient.wd3.myworkdayjobs.com/External", enabled: true}
+  - {name: Cooper Standard, ats: workday, url: "https://cooperstandard.wd1.myworkdayjobs.com/cooperstandard", enabled: true}
+  - {name: Garrett Motion, ats: oracle, url: "https://ehth.fa.em2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_2001", enabled: true}
+  - {name: UFP Industries, ats: workday, url: "https://ufpi.wd503.myworkdayjobs.com/ufpi", enabled: true}
+  - {name: SpartanNash, ats: workday, url: "https://spartannash.wd1.myworkdayjobs.com/spartannash_Careers", enabled: true}
+  - {name: Steelcase, ats: smartrecruiters, token: SteelcaseInc, enabled: true}
+  - {name: MillerKnoll, ats: workday, url: "https://millerknoll.wd1.myworkdayjobs.com/MillerKnoll", enabled: true}
+  - {name: Wolverine World Wide, ats: workday, url: "https://wwwinc.wd1.myworkdayjobs.com/WWW", enabled: true}
+  # Michigan Fortune 1000 on systems the agent can't read yet:
+  #   SAP SuccessFactors: Lear, DTE Energy, CMS Energy / Consumers Energy, Kellanova
+  #   iCIMS: UWM          gr8people: Whirlpool        Teamtailor: Autoliv
+  #   Phenom: WK Kellogg  Custom/unknown: American Axle, Visteon, Penske Automotive, Kelly Services
+
   # Not on a supported system yet (they still arrive via the SimplifyJobs feed when listed there):
   #   iCIMS: Charles Schwab, Urban Science      Avature: IBM, Siemens
   #   Workday, API refuses: Amerisure           Goldman Sachs: custom site
