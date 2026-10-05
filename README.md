@@ -33,15 +33,61 @@ cp .env.example .env    # then fill it in
 
 Run commands with the project virtualenv's Python. Conda's `base` Python doesn't have the dependencies. Either prefix commands with `.venv/bin/python` as shown below, or run `source .venv/bin/activate` once per shell.
 
+There are three commands: `run` finds jobs and writes leads, `check-sources` verifies the company list, and `find-boards` looks up companies to add.
+
+### `run`: find jobs and write leads
+
+Pulls postings from every company in `companies.yaml` and the SimplifyJobs list. It then:
+
+1. Filters out senior, old, non-software and non-US postings.
+2. Skips jobs already in the Jobs or Leads tab.
+3. Scores the rest with Claude.
+4. Adds those at or above `SCORE_THRESHOLD` to the Leads tab.
+
+This is what the daily schedule runs.
+
+| Option | What it does |
+|---|---|
+| `--dry-run` | Does everything, including scoring, but prints the leads instead of writing them to the sheet |
+| `--no-score` | Stops before scoring and prints the candidates. No Claude cost, nothing written |
+| `--source NAME` | Pulls from one system only: `greenhouse`, `lever`, `ashby`, `workday`, `oracle`, `smartrecruiters`, `successfactors` or `simplify`. Repeatable |
+
 ```bash
-.venv/bin/python -m jobsearch run --no-score        # fetch + filter + dedupe, print candidates (no API cost)
-.venv/bin/python -m jobsearch run --dry-run         # also score, print leads, write nothing
-.venv/bin/python -m jobsearch run                   # full run: writes to the Leads tab
-.venv/bin/python -m jobsearch run --source simplify # limit to one source (repeatable)
-.venv/bin/python -m jobsearch check-sources         # verify every board in companies.yaml responds
-.venv/bin/python -m jobsearch find-boards           # probe ATS boards for every company in the tracker
-.venv/bin/python -m jobsearch find-boards "Acme" "Globex"
-.venv/bin/python -m jobsearch find-boards --deep "Acme" --careers-url "Acme=https://careers.acme.com"  # slower: scan careers pages, guess Workday addresses
+.venv/bin/python -m jobsearch run                              # full run: writes leads to the sheet
+.venv/bin/python -m jobsearch run --dry-run                    # preview the leads, write nothing
+.venv/bin/python -m jobsearch run --no-score                   # list candidates without scoring (free)
+.venv/bin/python -m jobsearch run --no-score --source workday   # check one system only
+```
+
+### `check-sources`: verify the company list
+
+Checks every enabled company in `companies.yaml` and prints `ok` or `FAIL` with its open job count. Run it after editing the list, or when a company stops producing results.
+
+```bash
+.venv/bin/python -m jobsearch check-sources
+```
+
+### `find-boards`: look up companies to add
+
+Works out where each company's job board lives and prints lines to paste into `companies.yaml`. It doesn't change any files or pull any postings. With no names, it checks every company in the Jobs tracker. Companies it can't find are listed with the hiring system they use.
+
+| Option | What it does |
+|---|---|
+| `--deep` | Tries harder for names the quick pass misses: scans careers pages and guesses Workday addresses. About 10 seconds per company |
+| `--careers-url "NAME=URL"` | A careers page for `--deep` to scan. Repeatable |
+
+```bash
+.venv/bin/python -m jobsearch find-boards                      # every company in the Jobs tracker
+.venv/bin/python -m jobsearch find-boards "Stellantis" "Whirlpool"
+.venv/bin/python -m jobsearch find-boards --deep "Acme" --careers-url "Acme=https://careers.acme.com"
+```
+
+### Global option
+
+`-v` / `--verbose` shows debug logging. It goes before the command:
+
+```bash
+.venv/bin/python -m jobsearch -v run --dry-run
 ```
 
 Each run writes a log to `logs/YYYY-MM-DD.log` and a row to the `runs` table in `jobsearch.db`. The row records counts per stage (fetched, filtered by reason, known, scored, written) and any errors.
