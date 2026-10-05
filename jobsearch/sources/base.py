@@ -27,6 +27,14 @@ def make_client() -> httpx.Client:
 
 
 def get_json(client: httpx.Client, url: str, params: dict | None = None, attempts: int = 3):
+    return _get(client, url, params, attempts).json()
+
+
+def get_text(client: httpx.Client, url: str, params: dict | None = None, attempts: int = 3) -> str:
+    return _get(client, url, params, attempts).text
+
+
+def _get(client: httpx.Client, url: str, params: dict | None, attempts: int) -> httpx.Response:
     delay = 2.0
     for attempt in range(1, attempts + 1):
         try:
@@ -37,7 +45,7 @@ def get_json(client: httpx.Client, url: str, params: dict | None = None, attempt
             log.warning("transport error on %s (%s), retrying in %.0fs", url, e, delay)
         else:
             if resp.status_code == 200:
-                return resp.json()
+                return resp
             if resp.status_code not in RETRY_STATUSES or attempt == attempts:
                 raise SourceError(f"{url}: HTTP {resp.status_code}")
             retry_after = resp.headers.get("retry-after")

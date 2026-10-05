@@ -1,4 +1,4 @@
-from jobsearch.sources import ashby, greenhouse, lever, oracle, smartrecruiters, workday
+from jobsearch.sources import ashby, greenhouse, lever, oracle, smartrecruiters, successfactors, workday
 
 # Full-board fetchers: fetch(client, company) returns every open posting.
 ATS_FETCHERS = {
@@ -13,6 +13,7 @@ SEARCH_FETCHERS = {
     "workday": workday.fetch,
     "oracle": oracle.fetch,
     "smartrecruiters": smartrecruiters.fetch,
+    "successfactors": successfactors.fetch,
 }
 
 ALL_ATS = [*ATS_FETCHERS, *SEARCH_FETCHERS]

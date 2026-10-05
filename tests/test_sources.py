@@ -123,3 +123,66 @@ def test_smartrecruiters_parse_detail(load_fixture):
     assert p.source == "smartrecruiters" and p.external_id == f"ServiceNow:{d['id']}"
     assert p.url.startswith("https://jobs.smartrecruiters.com/ServiceNow/")
     assert p.locations and p.description and p.posted_at is not None
+
+
+def _fixture_text(name):
+    from pathlib import Path
+
+    return (Path(__file__).parent / "fixtures" / name).read_text()
+
+
+def test_successfactors_parse_search_page():
+    from jobsearch.sources import successfactors as sf
+
+    rows = sf.parse_search_page(_fixture_text("successfactors_search.html"))
+    assert len(rows) == 4
+    r = rows[0]
+    assert r["id"].isdigit() and r["path"].startswith("/job/") and r["path"].endswith(f"/{r['id']}/")
+    assert r["title"] and "<" not in r["title"]
+    assert r["location"].endswith("MI, US")
+    assert r["posted"] is not None  # this site shows a date column
+
+
+def test_successfactors_parse_job_page():
+    from jobsearch.sources import successfactors as sf
+
+    page = _fixture_text("successfactors_job.html")
+    p = sf.parse_job_page(page, "DTE Energy", "https://careers.dteenergy.com/job/x/1377939300/", "1377939300")
+    assert p.source == "successfactors" and p.external_id == "careers.dteenergy.com:1377939300"
+    assert p.title == "Control Engineer II"
+    assert p.locations == ["River Rouge, MI"]
+    assert p.posted_at.isoformat().startswith("2026-09-20")
+    assert len(p.description) > 1000 and "<" not in p.description
+    assert sf.page_country(page) == "US"
+
+
+def test_successfactors_row_country():
+    from jobsearch.sources.successfactors import _row_country
+
+    assert _row_country("Valladolid, VA, ES") == "ES"
+    assert _row_country("Oberding, BY, DE") == "DE"
+    assert _row_country("River Rouge, MI, US") == "US"
+    assert _row_country("Southfield, MI, US, 48033") == "US"
+    assert _row_country("Rabat, MA, 10000") == ""  # no country: handled by the location filter
+
+
+@respx.mock
+def test_successfactors_fetch_filters_before_detail_calls(monkeypatch):
+    from datetime import datetime, timezone
+
+    from jobsearch.sources import successfactors as sf
+
+    monkeypatch.setattr(sf.time, "sleep", lambda s: None)
+    search_html = _fixture_text("successfactors_search.html")
+    rows = sf.parse_search_page(search_html)
+    keep = rows[0]
+    base = "https://careers.consumersenergy.com"
+    respx.get(f"{base}/search/", params={"startrow": "0"}).mock(return_value=httpx.Response(200, text=search_html))
+    respx.get(f"{base}/search/", params={"startrow": str(len(rows))}).mock(return_value=httpx.Response(200, text="<table></table>"))
+    detail = respx.get(f"{base}{keep['path']}").mock(
+        return_value=httpx.Response(200, text=_fixture_text("successfactors_job.html")))
+    with make_client() as client:
+        posts = sf.fetch(client, {"name": "Consumers Energy", "url": base, "search": ["software"]},
+                         title_ok=lambda t: t == keep["title"], max_age_days=3650,
+                         now=datetime(2026, 10, 4, tzinfo=timezone.utc))
+    assert detail.call_count == 1 and len(posts) == 1  # other rows never fetched

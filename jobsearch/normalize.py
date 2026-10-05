@@ -155,7 +155,9 @@ _NON_US_RE = re.compile(
     r"netherlands|mexico|brazil|poland|spain|israel|china|korea|philippines|argentina|colombia|"
     r"portugal|sweden|switzerland|romania|serbia|vietnam|taiwan|hong kong|emea|apac|latam|"
     r"bangalore|bengaluru|hyderabad|pune|chennai|london|toronto|vancouver|montreal|dublin|berlin|"
-    r"munich|amsterdam|tokyo|sydney|tel aviv|warsaw|krakow|paris|madrid|lisbon)\b",
+    r"munich|amsterdam|tokyo|sydney|tel aviv|warsaw|krakow|paris|madrid|lisbon|"
+    # Moroccan sites whose "City, MA" would otherwise read as Massachusetts.
+    r"morocco|rabat|casablanca|tangier|kenitra|meknes|fes)\b",
     re.I,
 )
 _UNSPECIFIED_RE = re.compile(r"^\s*(remote|multiple|numerous|various|anywhere|hybrid)?\s*$", re.I)

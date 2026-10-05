@@ -95,3 +95,17 @@ def test_drops_physical_engineering(cfg, title):
 ])
 def test_keeps_software_titles_with_hardware_words(cfg, title):
     assert check(post(title), cfg, NOW) is None
+
+
+@pytest.mark.parametrize("title", [
+    "Plant Quality Engineer", "Laboratory Quality engineer", "Controls & Automation Engineer",
+    "Associate Process Engineer", "Associate Environmental Engineer - Coke",
+    "Engineering Entry Program (EEP) Engineer", "Application Engineer",
+])
+def test_drops_industrial_engineering_titles(cfg, title):
+    assert check(post(title), cfg, NOW) is not None
+
+
+@pytest.mark.parametrize("title", ["QA Engineer", "SDET I", "Test Automation Engineer", "SCADA Ignition Developer"])
+def test_keeps_software_testing_titles(cfg, title):
+    assert check(post(title), cfg, NOW) is None

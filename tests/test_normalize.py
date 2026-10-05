@@ -42,6 +42,8 @@ def test_us_location():
     assert is_us_location("Bangalore, IN") is False
     assert is_us_location("Dublin") is False
     assert is_us_location("Remote") is None
+    assert is_us_location("Rabat, MA, 10000") is False
+    assert is_us_location("Boston, MA") is True
 
 
 def test_normalize_title_keeps_specializations():

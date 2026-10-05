@@ -84,8 +84,9 @@ def _probe(client, ats: str, token: str) -> int | None:
 
 
 def _probe_search_site(client, ats: str, where: str) -> int | None:
-    """Total job count for a Workday / Oracle / SmartRecruiters site, or None if it doesn't respond."""
-    from jobsearch.sources import oracle, smartrecruiters, workday
+    """Job count for a Workday / Oracle / SmartRecruiters / SuccessFactors site, or None if it
+    doesn't respond. SuccessFactors reports only the first page of results."""
+    from jobsearch.sources import oracle, smartrecruiters, successfactors, workday
 
     try:
         if ats == "workday":
@@ -101,6 +102,13 @@ def _probe_search_site(client, ats: str, where: str) -> int | None:
         if ats == "smartrecruiters":
             r = client.get(smartrecruiters.URL.format(token=where), params={"limit": 1})
             return r.json().get("totalFound") if r.status_code == 200 else None
+        if ats == "successfactors":
+            # No total count in the page; report rows on the first page of an empty search.
+            r = client.get(f"{successfactors.base_url(where)}/search/", params={"q": "", "startrow": 0})
+            if r.status_code != 200:
+                return None
+            rows = successfactors.parse_search_page(r.text)
+            return len(rows) if rows else None
     except Exception:
         return None
     return None
@@ -151,7 +159,7 @@ _HOST_HINTS = [
     ("bamboohr.com", "BambooHR"),
     ("workable.com", "Workable"),
     ("applytojob.com", "JazzHR"),
-    ("successfactors", "SAP SuccessFactors"),
+    ("successfactors", "SAP SuccessFactors (add its career site URL with ats: successfactors)"),
     ("taleo.net", "Taleo"),
 ]
 

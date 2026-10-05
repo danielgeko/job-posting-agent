@@ -49,12 +49,11 @@ filters:
     - '\b(mobile|ios|android)\s+engineer\b'
     - '\b(platform|infrastructure|systems|cloud|devops|reliability|site reliability)\s+engineer\b'
     - '\b(ml|machine learning|ai|applied ai)\s+engineer\b'
-    - '\b(quality|qa|test|automation)\s+engineer\b'
-    - '\bapplication(s)?\s+(engineer|developer)\b'
-    - '\b(technology|technical|engineering|software)\b.*\b(program|rotational|development program|analyst program)\b'
+    - '\b(qa|sdet|test automation)\b'     # "Software Quality Engineer" is covered by "software"
+    - '\bapplications?\s+developer\b'
+    # Programs only when tech-flavored ("Engineering Entry Program" is usually industrial).
+    - '\b(technology|technical|software|information technology)\b.*\b(program|rotational|development program|analyst program)\b'
     - '\bnew grad\b'
-    - '\b(entry[- ]level|associate)\b.*\bengineer\b'
-    - '\bengineer\s*(i|1)\s*$'
 
   # Drop if the smallest "N years of experience" requirement in the description is >= this.
   max_years_experience: 2   # i.e. drop "3+ years" and above

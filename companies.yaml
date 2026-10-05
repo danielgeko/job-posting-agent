@@ -3,7 +3,9 @@
 # ats: workday                     -> url: https://<co>.wdN.myworkdayjobs.com/<Site>
 # ats: oracle                      -> url: https://<host>.oraclecloud.com/hcmUI/CandidateExperience/en/sites/<Site>
 # ats: smartrecruiters             -> token: the company id from jobs.smartrecruiters.com/<token>/...
-# Workday / Oracle / SmartRecruiters accept an optional `search:` list of terms
+# ats: successfactors              -> url: the career site's root, e.g. https://careers.dteenergy.com
+#                                     (SAP SuccessFactors sites with /search/ and /job/<slug>/<id>/ pages)
+# Workday / Oracle / SmartRecruiters / SuccessFactors accept an optional `search:` list of terms
 # (default ["software engineer", "software developer"]).
 #
 # Add more with:  python -m jobsearch find-boards              (probes every company in your tracker)
@@ -49,8 +51,11 @@ companies:
   - {name: Steelcase, ats: smartrecruiters, token: SteelcaseInc, enabled: true}
   - {name: MillerKnoll, ats: workday, url: "https://millerknoll.wd1.myworkdayjobs.com/MillerKnoll", enabled: true}
   - {name: Wolverine World Wide, ats: workday, url: "https://wwwinc.wd1.myworkdayjobs.com/WWW", enabled: true}
+  - {name: Lear, ats: successfactors, url: "https://jobs.lear.com", enabled: true}
+  - {name: DTE Energy, ats: successfactors, url: "https://careers.dteenergy.com", enabled: true}
+  - {name: Consumers Energy, ats: successfactors, url: "https://careers.consumersenergy.com", enabled: true}
+  - {name: Kellanova, ats: successfactors, url: "https://jobs.kellanova.com", enabled: true}
   # Michigan Fortune 1000 on systems the agent can't read yet:
-  #   SAP SuccessFactors: Lear, DTE Energy, CMS Energy / Consumers Energy, Kellanova
   #   iCIMS: UWM          gr8people: Whirlpool        Teamtailor: Autoliv
   #   Phenom: WK Kellogg  Custom/unknown: American Axle, Visteon, Penske Automotive, Kelly Services
 
